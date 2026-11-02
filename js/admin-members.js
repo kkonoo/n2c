@@ -65,8 +65,9 @@ export function initMembers({ db, fs, email, toast }) {
           <td>${esc(p.nameKo)}<small class="sub">${esc(p.nameEn || '')}</small></td>
           <td>${ROLES[p.role]?.ko || ''}</td>
           <td>${esc([p.deptKo, p.positionKo].filter(Boolean).join(' '))}</td>
+          <td class="c-del"><button class="btn-s danger" type="button" data-del="${esc(p.id)}">삭제</button></td>
         </tr>`).join('')
-      : `<tr><td colspan="4" class="msg">${people.length ? '찾는 사람이 없어요.' : '아직 구성원이 없어요. ‘세포·기질연구소 명단 가져오기’로 교수님들을 한 번에 넣을 수 있어요.'}</td></tr>`;
+      : `<tr><td colspan="5" class="msg">${people.length ? '찾는 사람이 없어요.' : '아직 구성원이 없어요. ‘세포·기질연구소 명단 가져오기’로 교수님들을 한 번에 넣을 수 있어요.'}</td></tr>`;
   }
 
   function showPhoto() {
@@ -90,7 +91,13 @@ export function initMembers({ db, fs, email, toast }) {
   $('#memberFilter').addEventListener('change', render);
   $('#memberSearch').addEventListener('input', render);
   $('#addMemberBtn').addEventListener('click', () => open());
+  // 줄 끝 삭제 단추는 바로 지우고, 나머지 자리를 누르면 고치기 창이 열려요
   $('#memberRows').addEventListener('click', e => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      remove(people.find(p => p.id === del.dataset.del));
+      return;
+    }
     const tr = e.target.closest('tr[data-id]');
     if (tr) open(people.find(p => p.id === tr.dataset.id));
   });
@@ -165,18 +172,23 @@ export function initMembers({ db, fs, email, toast }) {
     }
   });
 
-  $('#deleteMemberBtn').addEventListener('click', async () => {
-    if (!confirm(`${editing.nameKo}을(를) 구성원에서 지울까요?`)) return;
+  async function remove(p) {
+    if (!p || !confirm(`${p.nameKo}을(를) 구성원에서 지울까요?`)) return false;
     try {
-      await fs.deleteDoc(fs.doc(db, 'members', editing.id));
-      people = people.filter(p => p.id !== editing.id);
+      await fs.deleteDoc(fs.doc(db, 'members', p.id));
+      people = people.filter(x => x.id !== p.id);
       render();
-      $('#memberDialog').close();
-      toast('지웠어요.');
+      toast(`${p.nameKo}을(를) 지웠어요.`);
+      return true;
     } catch (err) {
       console.error(err);
       toast('지우지 못했어요. 다시 시도해 주세요.');
+      return false;
     }
+  }
+
+  $('#deleteMemberBtn').addEventListener('click', async () => {
+    if (await remove(editing)) $('#memberDialog').close();
   });
 
   // ---------- 세포·기질연구소 명단 가져오기 ----------
