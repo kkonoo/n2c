@@ -1,7 +1,7 @@
-// 관리자: 성과 입력 — 교수님 명단과 개인 링크, 실적 모아 보기, 연도별 집계, CSV
+// 관리자: 성과 입력 — 교수님 명단과 개인 링크, 실적 모아 보기(연·월 기간), 기간 합계, CSV
 // 실적은 이 탭에서만 모아 봐요. 교수님은 개인 링크(report.html?k=…)로 자기 실적만 넣고 고쳐요.
 import { esc } from './posts.js';
-import { CATS, CAT, cellHTML, pretty, isTop10, yearOf } from './report-types.js';
+import { CATS, CAT, cellHTML, pretty, isTop10 } from './report-types.js';
 
 const $ = s => document.querySelector(s);
 const START_YEAR = 2026;   // 사업 시작 (2026.9)
@@ -185,32 +185,51 @@ export function initReports({ db, fs, toast }) {
   });
 
   /* ---------- 실적 모아 보기 ---------- */
-  const catSel = $('#repCat'), fromSel = $('#repFrom'), toSel = $('#repTo'), profSel = $('#repProf');
+  // 기간은 연·월로 골라요 (연차가 3월–다음 해 2월이라서). 연도를 비우면 처음부터·지금까지
+  const catSel = $('#repCat'), profSel = $('#repProf');
+  const fromY = $('#repFromY'), fromM = $('#repFromM'), toY = $('#repToY'), toM = $('#repToM');
   catSel.innerHTML = CATS.map(c => `<option value="${c.key}">${esc(c.name)}</option>`).join('');
+  const months = Array.from({ length: 12 }, (_, i) => `<option value="${String(i + 1).padStart(2, '0')}">${i + 1}월</option>`).join('');
+  fromM.innerHTML = months;
+  toM.innerHTML = months;
+  toM.value = '12';
 
   function fillFilters() {
     const now = new Date().getFullYear();
-    const ys = reports.map(yearOf).filter(y => /^\d{4}$/.test(y)).map(Number);
+    const ys = reports.map(monthOf).filter(m => /^\d{4}-\d{2}$/.test(m)).map(m => Number(m.slice(0, 4)));
     const lo = Math.min(START_YEAR, ...ys), hi = Math.max(now, ...ys);
-    const years = Array.from({ length: hi - lo + 1 }, (_, i) => String(lo + i));
+    const years = Array.from({ length: hi - lo + 1 }, (_, i) => `<option>${lo + i}</option>`).join('');
     const keep = (sel, v, html) => { sel.innerHTML = html; if ([...sel.options].some(o => o.value === v)) sel.value = v; };
-    keep(fromSel, fromSel.value || '', `<option value="">처음부터</option>${years.map(y => `<option>${y}</option>`).join('')}`);
-    keep(toSel, toSel.value || '', `<option value="">지금까지</option>${years.map(y => `<option>${y}</option>`).join('')}`);
-    keep(profSel, profSel.value || '', `<option value="">교수님 전체</option>${reporters.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}`);
+    keep(fromY, fromY.value, `<option value="">처음부터</option>${years}`);
+    keep(toY, toY.value, `<option value="">지금까지</option>${years}`);
+    keep(profSel, profSel.value, `<option value="">교수님 전체</option>${reporters.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}`);
+    fromM.disabled = !fromY.value;
+    toM.disabled = !toY.value;
+  }
+
+  // 실적의 연·월 (YYYY-MM). 논문은 게재 연월, 특허·기술이전·수상·언론은 날짜, 공동연구는 시작 연월
+  const monthOf = r => String(CAT[r.cat]?.date(r.f || {}) || '').slice(0, 7);
+  const range = () => ({ from: fromY.value ? `${fromY.value}-${fromM.value}` : '', to: toY.value ? `${toY.value}-${toM.value}` : '' });
+  const label = ({ from, to }) => `${from ? pretty(from) : '처음'} ~ ${to ? pretty(to) : '지금'}`;
+
+  // 인력양성은 그 기간에 참여한 사람 (입학·임용 ~ 졸업·끝이 기간과 겹치면)
+  function inRange(r, { from, to }) {
+    if (r.cat === 'people') {
+      const admit = (r.f?.admit || '').slice(0, 7), grad = (r.f?.grad || '').slice(0, 7);
+      return (!to || !admit || admit <= to) && (!from || !grad || grad >= from);
+    }
+    const m = monthOf(r);
+    return (!from || (m && m >= from)) && (!to || (m && m <= to));
   }
 
   // 기간·교수님으로 거른 실적 (항목은 따로)
   function picked() {
-    const from = fromSel.value, to = toSel.value, prof = profSel.value;
-    return reports.filter(r => {
-      const y = yearOf(r);
-      return (!prof || r.prof === prof) && (!from || (y && y >= from)) && (!to || (y && y <= to));
-    });
+    const rg = range(), prof = profSel.value;
+    return reports.filter(r => (!prof || r.prof === prof) && inRange(r, rg));
   }
 
   function renderSummary(list) {
-    const years = [...new Set(list.map(yearOf).filter(Boolean))].sort();
-    const count = (y, fn) => list.filter(r => yearOf(r) === y && fn(r)).length;
+    const rg = range();
     const cols = [
       ['논문', r => r.cat === 'paper'],
       ['상위 10%', r => r.cat === 'paper' && isTop10(r.f || {})],
@@ -221,16 +240,15 @@ export function initReports({ db, fs, toast }) {
       ['수상', r => r.cat === 'award'],
       ['언론 보도', r => r.cat === 'press'],
     ];
+    $('#repSummary').innerHTML = `
+      <thead><tr><th>기간</th>${cols.map(([n]) => `<th class="c-num">${n}</th>`).join('')}</tr></thead>
+      <tbody><tr><td>${esc(label(rg))}</td>${cols.map(([, fn]) => `<td class="c-num">${list.filter(fn).length || '–'}</td>`).join('')}</tr></tbody>`;
     const people = list.filter(r => r.cat === 'people').map(r => r.f || {});
     const deg = d => people.filter(f => f.degree === d).length;
-    const grad = people.filter(f => f.status === '졸업').length;
-    $('#repSummary').innerHTML = years.length ? `
-      <thead><tr><th>연도</th>${cols.map(([n]) => `<th class="c-num">${n}</th>`).join('')}</tr></thead>
-      <tbody>${years.map(y => `<tr><td>${y}</td>${cols.map(([, fn]) => `<td class="c-num">${count(y, fn) || '–'}</td>`).join('')}</tr>`).join('')}</tbody>`
-      : '<tbody><tr><td class="msg">고른 기간에 실적이 없어요.</td></tr></tbody>';
+    const grad = people.filter(f => f.status === '졸업' && f.grad && (!rg.from || f.grad >= rg.from) && (!rg.to || f.grad <= rg.to)).length;
     $('#repPeople').textContent = people.length
-      ? `인력양성 명단 ${people.length}명 — 석사 ${deg('석사')} · 박사 ${deg('박사') + deg('석박통합')} · 박사후연구원 ${deg('박사후연구원')} · 학부연구생 ${deg('학부연구생')} · 연구원 ${deg('연구원')} (졸업 ${grad}명). 해는 졸업·끝난 연월, 없으면 입학·임용 연월로 셌어요.`
-      : '';
+      ? `인력양성: 이 기간에 참여한 ${people.length}명 — 석사 ${deg('석사')} · 박사 ${deg('박사') + deg('석박통합')} · 박사후연구원 ${deg('박사후연구원')} · 학부연구생 ${deg('학부연구생')} · 연구원 ${deg('연구원')}, 이 기간 졸업 ${grad}명`
+      : '인력양성: 이 기간에 참여한 사람이 없어요.';
   }
 
   function renderItems() {
@@ -248,7 +266,12 @@ export function initReports({ db, fs, toast }) {
       </tr>`).join('') : '<tr><td class="msg">고른 조건에 맞는 실적이 없어요.</td></tr>';
   }
 
-  [catSel, fromSel, toSel, profSel].forEach(s => s.addEventListener('change', renderItems));
+  [catSel, profSel, fromM, toM].forEach(s => s.addEventListener('change', renderItems));
+  [fromY, toY].forEach(s => s.addEventListener('change', () => {
+    fromM.disabled = !fromY.value;
+    toM.disabled = !toY.value;
+    renderItems();
+  }));
   $('#repRefreshBtn').addEventListener('click', load);
 
   // 실적 하나 자세히 (모든 칸). 고치려면 그 교수님 링크를 열어요
@@ -306,10 +329,11 @@ export function initReports({ db, fs, toast }) {
     });
     const lines = [head, ...rows].map(row => row.map(cell).join(','));
     const t = new Date(), p2 = n => String(n).padStart(2, '0');
-    const range = [fromSel.value, toSel.value].some(Boolean) ? `_${fromSel.value || '처음'}-${toSel.value || '지금'}` : '';
+    const rg = range();
+    const span = rg.from || rg.to ? `_${rg.from ? pretty(rg.from) : '처음'}-${rg.to ? pretty(rg.to) : '지금'}` : '';
     const link = document.createElement('a');
     link.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-    link.download = `성과_${c.name}${range}_${t.getFullYear()}${p2(t.getMonth() + 1)}${p2(t.getDate())}.csv`;
+    link.download = `성과_${c.name}${span}_${t.getFullYear()}${p2(t.getMonth() + 1)}${p2(t.getDate())}.csv`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   });

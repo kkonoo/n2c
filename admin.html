@@ -136,12 +136,14 @@
           </div>
         </div>
         <div class="filters rep-filters">
-          <select id="repFrom" aria-label="시작 연도"></select>
+          <select id="repFromY" aria-label="시작 연도"></select>
+          <select id="repFromM" aria-label="시작 월"></select>
           <span>~</span>
-          <select id="repTo" aria-label="끝 연도"></select>
+          <select id="repToY" aria-label="끝 연도"></select>
+          <select id="repToM" aria-label="끝 월"></select>
           <select id="repProf" aria-label="교수님"></select>
         </div>
-        <p class="hint">연도별 건수예요. 해는 논문은 게재 연월, 특허는 출원·등록일, 공동연구는 시작 연월로 셌고, 상위 10%는 교수님이 적은 JCR 상위 %가 10 이하인 논문이에요.</p>
+        <p class="hint">고른 기간의 합계예요. 기간은 연·월로 골라요(예: 1차년도 2026년 9월 ~ 2027년 2월). 논문은 게재 연월, 특허는 출원·등록일, 기술이전·수상·언론은 날짜, 공동연구는 시작 연월로 보고, 인력양성은 그 기간에 참여한 사람(입학·임용 ~ 졸업·끝)을 세요. 상위 10%는 교수님이 적은 JCR 상위 %가 10 이하인 논문이에요.</p>
         <div class="table-wrap"><table class="table rep-summary" id="repSummary"></table></div>
         <p class="hint" id="repPeople"></p>
         <div class="toolbar rep-list-head">

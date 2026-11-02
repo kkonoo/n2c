@@ -143,8 +143,6 @@ export function isTop10(f) {
   return Number.isFinite(n) && n <= 10;
 }
 
-// 실적이 속한 해 (관리자 집계·기간 거르기)
-export const yearOf = r => String(CAT[r.cat]?.date(r.f || {}) || '').slice(0, 4);
 
 // 2026-03 → 2026.03, 2026-03-05 → 2026.03.05
 export const pretty = v => String(v ?? '').replace(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/, (_, y, m, d) => d ? `${y}.${m}.${d}` : `${y}.${m}`);
