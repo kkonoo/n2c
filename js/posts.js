@@ -9,7 +9,7 @@ export const bi = (ko, en) => `<span lang="ko">${ko}</span><span lang="en">${en}
 
 export const BOARDS = {
   notices: { ko: '공지사항', en: 'Notices' },
-  seminars: { ko: '세미나', en: 'Seminars' },
+  seminars: { ko: '세미나·워크숍', en: 'Seminars & Workshops' },
   news: { ko: '사업단 소식', en: 'News' },
 };
 

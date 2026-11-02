@@ -1,4 +1,4 @@
-// 관리자: 구성원 (홈페이지 구성원 → 참여 연구원에 나와요)
+// 관리자: 구성원 (홈페이지 사업단 소개 → 구성원에 나와요)
 import { esc } from './posts.js';
 import { ROLES, sortMembers, memberPhoto } from './members.js';
 
@@ -22,12 +22,14 @@ async function shrinkPhoto(file) {
   return c.toDataURL('image/jpeg', 0.85);
 }
 
-// 엑셀 '구분' 칸을 다섯 중 하나로 (비우거나 모르는 값은 연구원)
+// 엑셀 '구분' 칸을 일곱 중 하나로 (비우거나 모르는 값은 연구원)
 function roleOf(s) {
+  if (/초빙|visiting/i.test(s)) return 'visiting';
   if (/전임|full/i.test(s)) return 'fulltime';
   if (/박사후|포닥|postdoc/i.test(s)) return 'postdoc';
   if (/행정|staff|admin/i.test(s)) return 'staff';
   if (/대학원|학생|과정|student/i.test(s)) return 'student';
+  if (/교수|faculty|professor/i.test(s)) return 'faculty';
   return 'researcher';
 }
 
@@ -64,7 +66,7 @@ export function initMembers({ db, fs, email, toast }) {
           <td>${ROLES[p.role]?.ko || ''}</td>
           <td>${esc([p.deptKo, p.positionKo].filter(Boolean).join(' '))}</td>
         </tr>`).join('')
-      : `<tr><td colspan="4" class="msg">${people.length ? '찾는 사람이 없어요.' : '아직 구성원이 없어요. 엑셀에서 붙여 넣거나 한 명씩 추가해 보세요.'}</td></tr>`;
+      : `<tr><td colspan="4" class="msg">${people.length ? '찾는 사람이 없어요.' : '아직 구성원이 없어요. ‘세포·기질연구소 명단 가져오기’로 교수님들을 한 번에 넣을 수 있어요.'}</td></tr>`;
   }
 
   function showPhoto() {
@@ -174,6 +176,41 @@ export function initMembers({ db, fs, email, toast }) {
     } catch (err) {
       console.error(err);
       toast('지우지 못했어요. 다시 시도해 주세요.');
+    }
+  });
+
+  // ---------- 세포·기질연구소 명단 가져오기 ----------
+  // 세포·기질연구소 홈페이지의 참여교수·연구초빙교수 명단(사진 포함, data/cmri-members.json)을 넣어요.
+  // 이름과 구분이 같은 사람이 이미 있으면 건너뛰어요.
+  $('#memberSeedBtn').addEventListener('click', async () => {
+    let rows;
+    try {
+      rows = await (await fetch('data/cmri-members.json')).json();
+    } catch (err) {
+      console.error(err);
+      toast('명단 파일을 열지 못했어요.');
+      return;
+    }
+    const fresh = rows.filter(r => !people.some(p => p.nameKo === r.nameKo && p.role === r.role));
+    if (!fresh.length) {
+      toast('모두 이미 들어 있어요.');
+      return;
+    }
+    const count = role => fresh.filter(r => r.role === role).length;
+    if (!confirm(`세포·기질연구소 명단에서 참여교수 ${count('faculty')}명, 연구초빙교수 ${count('visiting')}명을 가져올까요? 이미 있는 사람은 건너뛰어요.`)) return;
+    try {
+      for (let i = 0; i < fresh.length; i += 100) {
+        const batch = fs.writeBatch(db);
+        for (const r of fresh.slice(i, i + 100)) {
+          batch.set(fs.doc(fs.collection(db, 'members')), { ...r, updatedAt: fs.serverTimestamp(), updatedBy: email });
+        }
+        await batch.commit();
+      }
+      toast(`${fresh.length}명을 가져왔어요. 빠질 분은 눌러서 삭제해 주세요.`);
+      load();
+    } catch (err) {
+      console.error(err);
+      toast('가져오지 못했어요. Firestore 규칙을 새로 게시했는지 확인해 주세요.');
     }
   });
 

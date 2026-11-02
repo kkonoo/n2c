@@ -3,6 +3,7 @@ import { enabled, auth, firestore } from './firebase.js';
 import { esc } from './posts.js';
 import { initPosts } from './admin-posts.js';
 import { initMembers } from './admin-members.js';
+import { initApplications } from './admin-applications.js';
 
 const $ = s => document.querySelector(s);
 const gate = $('#gate');
@@ -87,6 +88,7 @@ async function start() {
     const ctx = { db, fs, email, toast };
     initPosts(ctx);
     initMembers(ctx);
+    initApplications(ctx);
     initAdmins(ctx);
   });
 }

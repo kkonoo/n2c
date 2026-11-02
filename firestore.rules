@@ -35,7 +35,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['nameKo', 'nameEn', 'role', 'positionKo', 'positionEn', 'deptKo', 'deptEn',
                                'researchKo', 'researchEn', 'email', 'photo', 'updatedAt', 'updatedBy'])
         && d.nameKo is string && d.nameKo.size() > 0 && d.nameKo.size() <= 50
-        && d.role in ['fulltime', 'postdoc', 'researcher', 'student', 'staff']
+        && d.role in ['faculty', 'visiting', 'fulltime', 'postdoc', 'researcher', 'student', 'staff']
         && text(d.get('nameEn', ''), 100)
         && text(d.get('positionKo', ''), 50) && text(d.get('positionEn', ''), 100)
         && text(d.get('deptKo', ''), 100) && text(d.get('deptEn', ''), 200)
@@ -43,6 +43,25 @@ service cloud.firestore {
         && text(d.get('email', ''), 200)
         // 사진은 관리자 화면에서 줄인 JPEG만
         && (photo == '' || (text(photo, 100000) && photo.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+')));
+    }
+
+    // 공모·신청은 로그인 없이 누구나. 이메일은 신청자가 적은 주소예요
+    function validApplication() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['email', 'type', 'name', 'dept', 'position', 'phone',
+                               'details', 'memo', 'files', 'status', 'createdAt'])
+        && d.email is string && d.email.size() <= 200 && d.email.matches('[^@\\s]+@[^@\\s]+[.][^@\\s]+')
+        && d.type in ['seed-pi', 'humanities', 'study', 'club',
+                      'industry-intern', 'global-training', 'lab-intern', 'workshop']
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 50
+        && d.dept is string && d.dept.size() > 0 && d.dept.size() <= 100
+        && text(d.get('position', ''), 50)
+        && d.phone is string && d.phone.size() > 0 && d.phone.size() <= 30
+        && d.details is map && d.details.size() <= 10
+        && text(d.get('memo', ''), 2000)
+        && d.files is list && d.files.size() <= 5
+        && d.status == 'submitted'
+        && d.createdAt == request.time;
     }
 
     match /admins/{email} {
@@ -69,10 +88,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // 구성원: 누구나 읽고(구성원 → 참여 연구원), 관리자만 씀
+    // 구성원: 누구나 읽고(사업단 소개 → 구성원), 관리자만 씀
     match /members/{id} {
       allow read: if true;
       allow create, update: if isAdmin() && validMember();
+      allow delete: if isAdmin();
+    }
+
+    // 공모·신청: 누구나 새로 내기만 하고, 보는 건 관리자만. 관리자는 결과(상태·메모)만 고쳐요
+    match /applications/{id} {
+      allow read: if isAdmin();
+      allow create: if validApplication();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'note', 'decidedAt', 'decidedBy'])
+        && request.resource.data.status in ['submitted', 'approved', 'rejected']
+        && text(request.resource.data.get('note', ''), 2000);
       allow delete: if isAdmin();
     }
   }

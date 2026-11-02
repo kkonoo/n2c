@@ -24,7 +24,7 @@ export function initPosts({ db, fs, email, toast }) {
 
   // 게시판의 글을 모두 불러와서 쪽으로 나눠 보여 줘요. 고치고 나서는 보던 쪽에 머물러요
   async function load(keepPage = false) {
-    rows.closest('table').querySelector('.c-cat').textContent = board === 'seminars' ? '연사' : '분류';
+    rows.closest('table').querySelector('.c-cat').textContent = board === 'seminars' ? '연사·강사' : '분류';
     rows.innerHTML = '<tr><td colspan="3" class="msg">불러오는 중…</td></tr>';
     $('#postPager').hidden = true;
     if (!keepPage) pager.reset();

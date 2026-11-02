@@ -1,9 +1,11 @@
-// 구성원 → 참여 연구원: 관리자가 넣은 구성원을 구분별로 가나다순으로 보여 줘요.
+// 사업단 소개 → 구성원: 관리자가 넣은 구성원을 구분별로 가나다순으로 보여 줘요.
 // 아무도 없거나 불러오지 못하면 HTML에 있는 안내가 그대로 보여요.
 import { enabled, firestore } from './firebase.js';
 import { bi, esc } from './posts.js';
 
 export const ROLES = {
+  faculty: { ko: '참여교수', en: 'Participating faculty' },
+  visiting: { ko: '연구초빙교수', en: 'Visiting research professors' },
   fulltime: { ko: '전임연구원', en: 'Full-time researchers' },
   postdoc: { ko: '박사후연구원', en: 'Postdoctoral researchers' },
   researcher: { ko: '연구원', en: 'Researchers' },

@@ -40,6 +40,7 @@ body.admin { background: var(--surface-2); min-height: 100vh; }
 .table tbody tr[tabindex]:hover { background: var(--accent-soft); }
 .table .c-date { width: 150px; white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
 .table .c-cat { width: 140px; }
+.table .c-num { width: 100px; white-space: nowrap; }
 .table .c-photo { width: 64px; padding-block: 8px; }
 .table .faculty-photo { width: 30px; height: 40px; border-radius: 6px; font-size: 14px; }
 .table .msg { padding: 32px; text-align: center; }
@@ -52,6 +53,20 @@ body.admin { background: var(--surface-2); min-height: 100vh; }
 .pager-pages span { align-self: center; padding: 0 4px; color: var(--faint); }
 .pager select { height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 14.5px; }
 .table .sub { display: block; font-size: 13px; color: var(--muted); }
+
+.state { font-weight: 600; font-size: 14px; }
+.state.ok { color: var(--good); }
+.state.wait { color: var(--warn); }
+.state.bad { color: var(--bad); }
+.seg .count { display: inline-block; min-width: 20px; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 20px; text-align: center; }
+.app-info { display: grid; gap: 0; margin: 0 0 16px; }
+.app-info div { display: grid; grid-template-columns: 8em minmax(0, 1fr); gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.app-info dt { color: var(--muted); }
+.app-info dd { margin: 0; white-space: pre-wrap; word-break: break-word; }
+.app-info a, .app-files a { color: var(--accent); }
+.app-files { margin-bottom: 16px; }
+.app-files ul { margin: 0; padding-left: 18px; font-size: 14.5px; }
+.app-files small { color: var(--muted); }
 
 .panel-box { margin-bottom: 20px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .panel-box h2 { margin: 0 0 6px; font-size: 19px; }

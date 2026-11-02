@@ -106,7 +106,7 @@ async function showPost() {
   setTitle(p.title, p.title);
   const meta = type === 'seminars'
     ? [[bi('일시', 'When'), `${dotDate(p.date)} (${weekdayBi(p.date)}) ${esc(p.time || '')}`.trim()],
-       [bi('연사', 'Speaker'), esc([p.speaker, p.affiliation].filter(Boolean).join(' · '))],
+       [bi('연사·강사', 'Speaker'), esc([p.speaker, p.affiliation].filter(Boolean).join(' · '))],
        [bi('장소', 'Venue'), esc(p.place || '')]]
     : [[bi('작성일', 'Date'), dotDate(p.date)]];
   const links = (p.links || []).filter(l => safeUrl(l.url));
