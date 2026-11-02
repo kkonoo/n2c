@@ -50,7 +50,7 @@ function card(p, inGroup = false) {
   return `<li class="faculty-card">
     ${memberPhoto(p)}
     <div>
-      ${tag ? `<span class="tag ${p.groupRole === 'lead' ? 'lead' : 'alt'}">${bi(tag.ko, tag.en)}</span> ` : ''}<strong>${both(p.nameKo, p.nameEn)}</strong>${p.positionKo ? ` <small>${both(p.positionKo, p.positionEn)}</small>` : ''}
+      ${tag ? `<span class="tag${p.groupRole === 'lead' ? '' : ' alt'}">${bi(tag.ko, tag.en)}</span> ` : ''}<strong>${both(p.nameKo, p.nameEn)}</strong>${p.positionKo ? ` <small>${both(p.positionKo, p.positionEn)}</small>` : ''}
       ${p.deptKo ? `<p>${both(p.deptKo, p.deptEn)}</p>` : ''}
       ${p.researchKo ? `<p class="research">${both(p.researchKo, p.researchEn)}</p>` : ''}
       ${p.email ? `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>` : ''}

@@ -172,7 +172,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
   padding: 2px 9px; border-radius: 6px;
 }
 .tag.alt { color: var(--orange-text); background: var(--orange-soft); }
-.tag.lead { color: var(--on-accent); background: var(--accent); }   /* 구성원: 책임은 파랑, 공동은 주황 */
 /* 공지·소식 분류는 분류마다 색이 달라요 (목록에 없는 분류는 기본 파랑) */
 .tag[data-cat] { color: var(--cat, var(--accent)); background: color-mix(in srgb, var(--cat, var(--accent)) 12%, transparent); }
 .tag[data-cat="공지"] { --cat: var(--cat-gray); }
