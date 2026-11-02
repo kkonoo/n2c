@@ -32,10 +32,13 @@ service cloud.firestore {
     function validMember() {
       let d = request.resource.data;
       let photo = d.get('photo', '');
-      return d.keys().hasOnly(['nameKo', 'nameEn', 'role', 'positionKo', 'positionEn', 'deptKo', 'deptEn',
+      return d.keys().hasOnly(['nameKo', 'nameEn', 'role', 'group', 'groupRole', 'positionKo', 'positionEn', 'deptKo', 'deptEn',
                                'researchKo', 'researchEn', 'email', 'photo', 'updatedAt', 'updatedBy'])
         && d.nameKo is string && d.nameKo.size() > 0 && d.nameKo.size() <= 50
         && d.role in ['faculty', 'visiting', 'fulltime', 'postdoc', 'researcher', 'student', 'staff']
+        // 핵심과제 그룹과 그룹 안 역할 (js/members.js와 같게)
+        && d.get('group', '') in ['', 'g1', 'g2', 'g3', 'auto']
+        && d.get('groupRole', '') in ['', 'lead', 'co', 'member']
         && text(d.get('nameEn', ''), 100)
         && text(d.get('positionKo', ''), 50) && text(d.get('positionEn', ''), 100)
         && text(d.get('deptKo', ''), 100) && text(d.get('deptEn', ''), 200)

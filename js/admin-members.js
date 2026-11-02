@@ -1,8 +1,10 @@
 // 관리자: 구성원 (홈페이지 사업단 소개 → 구성원에 나와요)
 import { esc } from './posts.js';
-import { ROLES, sortMembers, memberPhoto } from './members.js';
+import { ROLES, GROUPS, GROUP_ROLES, sortMembers, memberPhoto } from './members.js';
 
-const FIELDS = ['nameKo', 'nameEn', 'role', 'positionKo', 'positionEn', 'deptKo', 'deptEn', 'researchKo', 'researchEn', 'email'];
+const FIELDS = ['nameKo', 'nameEn', 'role', 'group', 'groupRole', 'positionKo', 'positionEn', 'deptKo', 'deptEn', 'researchKo', 'researchEn', 'email'];
+const RESEARCH = ['researchKo', 'researchEn'];
+const groupText = p => (p.group in GROUPS ? [GROUPS[p.group].short, GROUP_ROLES[p.groupRole]?.ko].filter(Boolean).join(' · ') : '');
 const isEmail = s => /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(s);
 
 // 사진은 세로 3:4로 잘라 150×200 JPEG로 줄여 Firestore 문서에 그대로 넣어요 (한 장 10~20KB)
@@ -55,15 +57,18 @@ export function initMembers({ db, fs, email, toast }) {
     const filter = $('#memberFilter');
     const r = filter.value;
     const q = $('#memberSearch').value.trim().toLowerCase();
+    // 구분과 그룹을 한 칸에서 골라요 (그룹은 값 앞에 g:)
     filter.innerHTML = `<option value="">전체 (${people.length}명)</option>`
-      + Object.entries(ROLES).map(([k, v]) => `<option value="${k}"${k === r ? ' selected' : ''}>${v.ko} (${people.filter(p => p.role === k).length}명)</option>`).join('');
-    const shown = people.filter(p => (!r || p.role === r)
+      + Object.entries(ROLES).map(([k, v]) => `<option value="${k}"${k === r ? ' selected' : ''}>${v.ko} (${people.filter(p => p.role === k).length}명)</option>`).join('')
+      + Object.entries(GROUPS).map(([k, v]) => `<option value="g:${k}"${`g:${k}` === r ? ' selected' : ''}>${v.ko} (${people.filter(p => p.group === k).length}명)</option>`).join('');
+    const pick = p => (!r || (r.startsWith('g:') ? p.group === r.slice(2) : p.role === r));
+    const shown = people.filter(p => pick(p)
       && (!q || [p.nameKo, p.nameEn, p.deptKo].some(s => (s || '').toLowerCase().includes(q))));
     $('#memberRows').innerHTML = shown.length
       ? shown.map(p => `<tr data-id="${esc(p.id)}" tabindex="0">
           <td class="c-photo">${memberPhoto(p)}</td>
           <td>${esc(p.nameKo)}<small class="sub">${esc(p.nameEn || '')}</small></td>
-          <td>${ROLES[p.role]?.ko || ''}</td>
+          <td>${ROLES[p.role]?.ko || ''}${groupText(p) ? `<small class="sub">${esc(groupText(p))}</small>` : ''}</td>
           <td>${esc([p.deptKo, p.positionKo].filter(Boolean).join(' '))}</td>
           <td class="c-del"><button class="btn-s danger" type="button" data-del="${esc(p.id)}">삭제</button></td>
         </tr>`).join('')
@@ -81,6 +86,8 @@ export function initMembers({ db, fs, email, toast }) {
     const f = form.elements;
     for (const k of FIELDS) f[k].value = p?.[k] || '';
     f.role.value = p?.role || 'researcher';
+    f.group.value = p?.group in GROUPS ? p.group : '';
+    f.groupRole.value = p?.groupRole in GROUP_ROLES ? p.groupRole : '';
     photo = p?.photo || '';
     showPhoto();
     $('#memberDialogTitle').textContent = p ? '구성원 고치기' : '구성원 추가';
@@ -155,6 +162,8 @@ export function initMembers({ db, fs, email, toast }) {
     const f = form.elements;
     const data = Object.fromEntries(FIELDS.map(k => [k, f[k].value.trim()]));
     data.email = data.email.toLowerCase();
+    if (!data.group) data.groupRole = '';   // 그룹이 없으면 역할도 없어요
+    else if (!data.groupRole) data.groupRole = 'member';
     if (data.email && !isEmail(data.email)) {
       toast('이메일 주소를 확인해 주세요.');
       return;
@@ -192,8 +201,10 @@ export function initMembers({ db, fs, email, toast }) {
   });
 
   // ---------- 세포·기질연구소 명단 가져오기 ----------
-  // 세포·기질연구소 홈페이지의 참여교수·연구초빙교수 명단(사진 포함, data/cmri-members.json)을 넣어요.
-  // 이름과 구분이 같은 사람이 이미 있으면 건너뛰어요.
+  // data/cmri-members.json: 세포·기질연구소 홈페이지의 참여교수·연구초빙교수(사진 포함)와, 그룹을 정해 둔 사업단 연구진 11명.
+  // - 구성원이 하나도 없으면 모두 넣어요.
+  // - 이미 있으면 지운 분이 다시 들어오지 않게 그룹 연구진만 봐요: 없는 사람은 넣고, 그룹이 비어 있는 사람은 그룹·역할을 채워요
+  //   (연구 분야가 비어 있으면 그것도). 그룹 연구진은 이름으로 찾아요.
   $('#memberSeedBtn').addEventListener('click', async () => {
     let rows;
     try {
@@ -203,22 +214,42 @@ export function initMembers({ db, fs, email, toast }) {
       toast('명단 파일을 열지 못했어요.');
       return;
     }
-    const fresh = rows.filter(r => !people.some(p => p.nameKo === r.nameKo && p.role === r.role));
-    if (!fresh.length) {
-      toast('모두 이미 들어 있어요.');
+    const first = !people.length;
+    const add = [];
+    const fill = [];   // [기존 사람, 고칠 값]
+    for (const r of rows) {
+      if (r.group) {
+        const old = people.find(p => p.nameKo === r.nameKo);
+        if (!old) add.push(r);
+        else if (!(old.group in GROUPS)) {
+          const patch = { group: r.group, groupRole: r.groupRole };
+          if (!old.researchKo) for (const k of RESEARCH) if (r[k]) patch[k] = r[k];
+          fill.push([old, patch]);
+        }
+      } else if (first) add.push(r);
+    }
+    if (!add.length && !fill.length) {
+      toast('더 넣을 사람이 없어요. 그룹 연구진도 모두 들어 있어요.');
       return;
     }
-    const count = role => fresh.filter(r => r.role === role).length;
-    if (!confirm(`세포·기질연구소 명단에서 참여교수 ${count('faculty')}명, 연구초빙교수 ${count('visiting')}명을 가져올까요? 이미 있는 사람은 건너뛰어요.`)) return;
+    const todo = [add.length && `${add.length}명 새로 넣기`, fill.length && `${fill.length}명 그룹 채우기`].filter(Boolean).join(', ');
+    const ask = first
+      ? `세포·기질연구소 명단과 사업단 연구진 ${add.length}명을 가져올까요?`
+      : `${todo}를 할까요?\n(지운 분이 다시 들어오지 않게 나머지 세포·기질연구소 명단은 건너뛰어요.)`;
+    if (!confirm(ask)) return;
     try {
-      for (let i = 0; i < fresh.length; i += 100) {
+      const writes = [
+        ...add.map(r => [fs.doc(fs.collection(db, 'members')), r, undefined]),
+        ...fill.map(([old, patch]) => [fs.doc(db, 'members', old.id), patch, { merge: true }]),
+      ];
+      for (let i = 0; i < writes.length; i += 100) {
         const batch = fs.writeBatch(db);
-        for (const r of fresh.slice(i, i + 100)) {
-          batch.set(fs.doc(fs.collection(db, 'members')), { ...r, updatedAt: fs.serverTimestamp(), updatedBy: email });
+        for (const [ref, data, opt] of writes.slice(i, i + 100)) {
+          batch.set(ref, { ...data, updatedAt: fs.serverTimestamp(), updatedBy: email }, opt);
         }
         await batch.commit();
       }
-      toast(`${fresh.length}명을 가져왔어요. 빠질 분은 눌러서 삭제해 주세요.`);
+      toast([add.length && `${add.length}명을 넣었어요.`, fill.length && `${fill.length}명의 그룹을 채웠어요.`].filter(Boolean).join(' '));
       load();
     } catch (err) {
       console.error(err);
