@@ -8,7 +8,8 @@ service cloud.firestore {
       return request.auth.token.email.lower();
     }
     function signedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
+      // 성과 입력 링크의 익명 접속에는 이메일이 없어요
+      return request.auth != null && request.auth.token.get('email_verified', false) == true;
     }
     // admins/{이메일} 문서가 있으면 관리자
     function isAdmin() {
@@ -69,6 +70,24 @@ service cloud.firestore {
         && d.createdAt == request.time;
     }
 
+    // 성과 입력: 교수님별 개인 링크(report.html?k=토큰)를 열면 익명으로 로그인하고
+    // reportSessions/{uid}에 토큰을 적어요. 그 토큰(reportKeys/{토큰})의 교수님 실적만 읽고 써요.
+    function myReporter() {
+      let k = get(/databases/$(database)/documents/reportSessions/$(request.auth.uid)).data.k;
+      return get(/databases/$(database)/documents/reportKeys/$(k)).data.prof;
+    }
+    function isReporter(pid) {
+      return request.auth != null && myReporter() == pid;
+    }
+    function validReport() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['prof', 'cat', 'f', 'createdAt', 'updatedAt'])
+        && d.prof is string
+        // 항목 (js/report-types.js와 같게)
+        && d.cat in ['paper', 'patent', 'transfer', 'people', 'collab', 'award', 'press']
+        && d.f is map && d.f.size() <= 30;
+    }
+
     match /admins/{email} {
       // 본인 문서는 읽을 수 있어야 관리자인지 확인할 수 있어요
       allow read: if isAdmin() || (signedIn() && email == myEmail());
@@ -109,6 +128,29 @@ service cloud.firestore {
         && request.resource.data.status in ['submitted', 'approved', 'rejected']
         && text(request.resource.data.get('note', ''), 2000);
       allow delete: if isAdmin();
+    }
+
+    // 성과 입력: 교수님 명단·토큰은 관리자만 관리해요. 토큰 문서는 그 토큰을 아는 사람만 열 수 있어요(목록은 관리자만)
+    match /reporters/{pid} {
+      allow read, write: if isAdmin();
+    }
+    match /reportKeys/{key} {
+      allow get: if request.auth != null;
+      allow list, write: if isAdmin();
+    }
+    match /reportSessions/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['k', 'at'])
+        && request.resource.data.k is string && request.resource.data.k.matches('[A-Za-z0-9_-]{20,64}')
+        && exists(/databases/$(database)/documents/reportKeys/$(request.resource.data.k));
+    }
+    // 실적: 관리자는 모두, 교수님은 자기 것만. 공개 페이지에는 나오지 않아요
+    match /reports/{id} {
+      allow read, delete: if isAdmin() || isReporter(resource.data.prof);
+      allow create: if validReport() && (isAdmin() || isReporter(request.resource.data.prof));
+      allow update: if validReport() && request.resource.data.prof == resource.data.prof
+        && (isAdmin() || isReporter(resource.data.prof));
     }
   }
 }

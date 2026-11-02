@@ -4,6 +4,7 @@ import { esc } from './posts.js';
 import { initPosts } from './admin-posts.js';
 import { initMembers } from './admin-members.js';
 import { initApplications } from './admin-applications.js';
+import { initReports } from './admin-reports.js';
 
 const $ = s => document.querySelector(s);
 const gate = $('#gate');
@@ -27,6 +28,7 @@ function showGate(html) {
 function openTab(name) {
   document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
   document.querySelectorAll('.tab-panel').forEach(p => (p.hidden = p.dataset.panel !== name));
+  document.dispatchEvent(new CustomEvent('admintab', { detail: name }));
 }
 
 $('.admin-tabs').addEventListener('click', e => {
@@ -51,6 +53,8 @@ async function start() {
 
   let started = false;
   fa.onAuthStateChanged(a, async user => {
+    // 성과 입력 링크로 들어왔던 익명 접속은 로그인 안 한 것으로 봐요
+    if (user?.isAnonymous) user = null;
     $('#account').hidden = !user;
     if (!user) {
       showGate(`<h1>관리자 로그인</h1>
@@ -89,6 +93,7 @@ async function start() {
     initPosts(ctx);
     initMembers(ctx);
     initApplications(ctx);
+    initReports(ctx);
     initAdmins(ctx);
   });
 }

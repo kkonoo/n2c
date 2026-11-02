@@ -119,3 +119,37 @@ dialog .actions { margin-top: 18px; }
   .admin-tabs { display: flex; overflow-x: auto; }
   .account span { display: none; }
 }
+
+/* ---------- 성과 입력 (report.html)과 관리자 성과 탭 ---------- */
+.report-head h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: -.02em; }
+.report-head .hint { max-width: 760px; margin-bottom: 20px; }
+.report-rule { flex: 1 1 360px; margin: 0; }
+.report-rule b { color: var(--text); }
+.chip { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 6px; background: var(--seg); color: var(--muted); font-size: 12px; font-weight: 700; line-height: 20px; vertical-align: 1px; }
+.chip.ok { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good); }
+.chip.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.grid-2 > .full { grid-column: 1 / -1; }
+.field .req { font-style: normal; color: var(--bad); }
+.field .help, .field .doi-msg { font-size: 12.5px; font-weight: 400; color: var(--muted); }
+.doi-row { display: flex; gap: 8px; }
+.doi-row input { flex: 1; min-width: 0; }
+.table .c-link { width: 1%; white-space: nowrap; }
+.table .c-link .actions { flex-wrap: nowrap; gap: 6px; }
+.table .c-link .btn-s { height: 32px; padding: 0 10px; font-size: 13.5px; text-decoration: none; }
+.panel-box > .toolbar h2 { margin: 0; }
+.rep-add { max-width: 640px; margin-top: 14px; }
+.rep-add input[name="name"] { max-width: 160px; }
+.rep-filters { margin-bottom: 8px; color: var(--muted); }
+.table-wrap { overflow-x: auto; margin-bottom: 8px; }
+.rep-summary { font-variant-numeric: tabular-nums; }
+.rep-summary .c-num { width: auto; text-align: right; }
+.rep-list-head { justify-content: flex-start; margin: 24px 0 10px; }
+.rep-list-head select { height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 14.5px; font-weight: 600; }
+.admin-tabs button { flex: none; white-space: nowrap; }
+@media (max-width: 760px) {
+  .table .c-link .actions { flex-wrap: wrap; }
+  .table.report-list { display: table; }
+  .report-list .c-date { display: none; }
+  .rep-add { flex-wrap: wrap; }
+  .rep-add input[name="name"] { max-width: none; }
+}
