@@ -602,7 +602,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .apply-actions .form-msg { margin-top: 0; }
 
 /* ---------- 연구 › 단계별 로드맵 ---------- */
-.rmap { --when-h: 50px; --dot: 40px; }
+.rmap { --when-h: 50px; --dot: 40px; --dot-gap: 12px; }
 .rmap [data-track="drug"] { --t: var(--accent); }
 .rmap [data-track="eng"] { --t: var(--cat-teal); }
 .rmap [data-track="dx"] { --t: var(--cat-purple); }
@@ -622,7 +622,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .rmap-phases { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 /* 기간 전체를 띠 하나로: 진한 파랑에서 옅게 */
 .rmap-phases::before {
-  content: ""; position: absolute; left: calc(var(--dot) / 2); right: 0; top: calc(var(--when-h) + var(--dot) / 2 - 3px); height: 6px; border-radius: 3px;
+  content: ""; position: absolute; left: calc(var(--dot) / 2); right: 0; top: calc(var(--when-h) + var(--dot-gap) + var(--dot) / 2 - 3px); height: 6px; border-radius: 3px;
   background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 22%, var(--surface)));
 }
 .rmap-phase { position: relative; padding-right: 28px; transition: opacity .2s; }
@@ -632,7 +632,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .rmap-phase.now .rmap-when small::after { content: "진행 중"; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; }
 :root[data-lang="en"] .rmap-phase.now .rmap-when small::after { content: "In progress"; }
 .rmap-dot {
-  position: relative; z-index: 1; display: grid; place-items: center; width: var(--dot); height: var(--dot); margin: 0;
+  position: relative; z-index: 1; display: grid; place-items: center; width: var(--dot); height: var(--dot); margin: var(--dot-gap) 0 0;
   border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 15px; font-weight: 800;
   transition: transform .2s;
 }
@@ -643,13 +643,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .rmap-items { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .rmap-items li {
   display: grid; grid-template-columns: 6.2em minmax(0, 1fr); gap: 10px; padding: 8px 10px; border-radius: 10px;
-  border-left: 3px solid transparent; font-size: 14.5px; cursor: default; transition: opacity .15s, background .15s, border-color .15s;
+  font-size: 14.5px; cursor: default; transition: opacity .15s, background .15s;
 }
 :root[data-lang="en"] .rmap-items li { grid-template-columns: 7.6em minmax(0, 1fr); }
 .rmap-k { display: inline-flex; align-items: baseline; gap: 7px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .rmap-k::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--t); transform: translateY(-1px); }
 .rmap-v { color: var(--body); }
-.rmap-items li:hover, .rmap-items li.on { border-left-color: var(--t); background: color-mix(in srgb, var(--t) 9%, transparent); }
+.rmap-items li:hover, .rmap-items li.on { background: color-mix(in srgb, var(--text) 6%, transparent); }
 .rmap-items li.on .rmap-k { color: var(--t); }
 .rmap-items li.on .rmap-v { color: var(--text); font-weight: 600; }
 .rmap[data-track] .rmap-items li:not(.on) { opacity: .35; }
@@ -783,7 +783,7 @@ a.paper:hover { color: var(--accent); text-decoration-color: currentColor; }
   .rmap-phases { grid-template-columns: 1fr; gap: 32px; }
   .rmap-phases::before { left: calc(var(--dot) / 2 - 3px); right: auto; top: calc(var(--dot) / 2); bottom: 0; width: 6px; height: auto; background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 22%, var(--surface))); }
   .rmap-phase { padding: 0 0 0 calc(var(--dot) + 16px); }
-  .rmap-dot { position: absolute; left: 0; top: 2px; }
+  .rmap-dot { position: absolute; left: 0; top: 2px; margin: 0; }
   .rmap-when { height: auto; }
   .rmap-goal { padding-top: 8px; }
   .rmap-goal::before { display: none; }
