@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>관리자 | 천연나노융합사업단</title>
+  <script>try{var p=JSON.parse(localStorage.getItem('n2c-prefs')||'{}');if(p.theme)document.documentElement.dataset.theme=p.theme}catch(e){}</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="icon" href="img/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin">
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+      <img class="brand-logo" src="img/n2c-mark.png" alt="N2C" width="66" height="40">
+      <span class="brand-text"><strong>천연나노융합사업단</strong><small>관리자</small></span>
+    </a>
+    <div class="header-tools">
+      <div class="account" id="account" hidden>
+        <span id="accountEmail"></span>
+        <button class="btn-s" type="button" id="logoutBtn">로그아웃</button>
+      </div>
+      <button class="tool-btn theme-btn" type="button" aria-label="화면 밝기">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap admin-main">
+
+  <section class="gate" id="gate">
+    <p class="msg">불러오는 중…</p>
+  </section>
+
+  <div id="app" hidden>
+    <nav class="seg admin-tabs" aria-label="관리 메뉴">
+      <button type="button" data-tab="posts" class="on">게시글</button>
+      <button type="button" data-tab="members">구성원</button>
+      <button type="button" data-tab="admins">관리자</button>
+    </nav>
+
+    <!-- 게시글 -->
+    <section class="tab-panel" data-panel="posts">
+      <div class="toolbar">
+        <div class="seg" id="boardSeg">
+          <button type="button" data-board="notices" class="on">공지사항</button>
+          <button type="button" data-board="seminars">세미나</button>
+          <button type="button" data-board="news">사업단 소식</button>
+        </div>
+        <button class="btn-s primary" type="button" id="newPostBtn">새 글 쓰기</button>
+      </div>
+      <table class="table">
+        <thead><tr><th class="c-date">날짜</th><th class="c-cat">분류</th><th>제목</th></tr></thead>
+        <tbody id="postRows"></tbody>
+      </table>
+      <div class="pager" id="postPager" hidden></div>
+    </section>
+
+    <!-- 구성원 -->
+    <section class="tab-panel" data-panel="members" hidden>
+      <div class="toolbar">
+        <div class="filters">
+          <select id="memberFilter" aria-label="구분"></select>
+          <input id="memberSearch" type="search" placeholder="이름·소속 찾기" aria-label="찾기">
+        </div>
+        <div class="actions">
+          <label class="btn-s">사진 한꺼번에 넣기<input type="file" accept="image/*" multiple id="memberPhotosInput" hidden></label>
+          <button class="btn-s" type="button" id="memberImportBtn">엑셀에서 붙여 넣기</button>
+          <button class="btn-s primary" type="button" id="addMemberBtn">한 명 추가</button>
+        </div>
+      </div>
+      <p class="hint">홈페이지 구성원 → 참여 연구원에 구분별로 가나다순으로 나와요. 아무도 없으면 ‘준비 중’ 안내가 보여요. 연구 책임자·공동연구원은 <code>people.html</code>에 적혀 있어서 여기에는 넣지 않아요. 사진을 한꺼번에 넣을 때는 파일 이름을 이름이나 영문 이름과 같게(홍길동.jpg, Gil-Dong Hong.jpg) 해 주세요.</p>
+      <table class="table">
+        <thead><tr><th class="c-photo">사진</th><th>이름</th><th class="c-cat">구분</th><th>소속·직위</th></tr></thead>
+        <tbody id="memberRows"></tbody>
+      </table>
+    </section>
+
+    <!-- 관리자 -->
+    <section class="tab-panel" data-panel="admins" hidden>
+      <form class="panel-box" id="adminForm">
+        <h2>관리자</h2>
+        <p class="hint">추가한 사람은 그 구글 계정으로 로그인하면 바로 관리할 수 있어요.</p>
+        <ul class="admin-list" id="adminList"></ul>
+        <div class="inline-form">
+          <input name="email" type="email" required placeholder="구글 계정 이메일" aria-label="추가할 관리자 이메일">
+          <button class="btn-s primary" type="submit">추가</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+
+<!-- 글 쓰기·고치기 -->
+<dialog id="postDialog" class="wide">
+  <form method="dialog" id="postForm">
+    <h2 id="postDialogTitle">새 글</h2>
+    <div class="grid-2">
+      <label class="field" data-not="seminars">분류<input name="category" list="categoryList" maxlength="20"></label>
+      <label class="field">날짜<input name="date" type="date" required></label>
+      <label class="field" data-only="seminars">시간<input name="time" placeholder="16:00" maxlength="20"></label>
+    </div>
+    <datalist id="categoryList"></datalist>
+    <label class="field"><span data-only="seminars">강연 제목</span><span data-not="seminars">제목</span><input name="title" required maxlength="200"></label>
+    <div class="grid-2" data-only="seminars">
+      <label class="field">연사<input name="speaker" placeholder="홍길동 교수" maxlength="100"></label>
+      <label class="field">소속<input name="affiliation" maxlength="100"></label>
+      <label class="field">장소<input name="place" maxlength="100"></label>
+    </div>
+    <label class="field">내용<textarea name="body" rows="10"></textarea></label>
+    <p class="hint">빈 줄로 문단을 나눠요. 주소를 쓰면 링크가 돼요.</p>
+    <fieldset class="field">
+      <legend>첨부 링크</legend>
+      <div id="linkRows"></div>
+      <button class="btn-s" type="button" id="addLinkBtn">링크 추가</button>
+      <p class="hint">파일은 구글 드라이브에 올리고 공유 링크를 붙여 주세요. 사진 주소(.jpg·.png)를 넣으면 글 위에 사진으로 보이고, 사업단 소식은 첫 사진이 카드에 나와요.</p>
+    </fieldset>
+    <label class="check" data-only="notices"><input name="pinned" type="checkbox"> 목록 맨 위에 고정</label>
+    <div class="actions">
+      <button class="btn-s danger" type="button" id="deletePostBtn">삭제</button>
+      <span class="spacer"></span>
+      <button class="btn-s" value="cancel" formnovalidate>취소</button>
+      <button class="btn-s primary" type="submit" value="save">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 구성원 추가·고치기 -->
+<dialog id="memberDialog" class="wide">
+  <form method="dialog" id="memberForm">
+    <h2 id="memberDialogTitle">구성원</h2>
+    <div class="photo-field">
+      <div id="memberPhoto"></div>
+      <div>
+        <div class="actions">
+          <label class="btn-s">사진 고르기<input type="file" accept="image/*" id="memberPhotoInput" hidden></label>
+          <button class="btn-s danger" type="button" id="memberPhotoRemove">사진 빼기</button>
+        </div>
+        <p class="hint">세로 3:4로 잘라 작게 줄여 저장해요.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <label class="field">이름<input name="nameKo" required maxlength="50"></label>
+      <label class="field">영문 이름<input name="nameEn" maxlength="100" placeholder="Gil-Dong Hong"></label>
+      <label class="field">구분<select name="role">
+        <option value="fulltime">전임연구원</option>
+        <option value="postdoc">박사후연구원</option>
+        <option value="researcher">연구원</option>
+        <option value="student">대학원생</option>
+        <option value="staff">행정</option>
+      </select></label>
+      <label class="field">이메일<input name="email" type="email" maxlength="200"></label>
+      <label class="field">직위<input name="positionKo" maxlength="50" placeholder="박사과정"></label>
+      <label class="field">영문 직위<input name="positionEn" maxlength="100" placeholder="Ph.D. student"></label>
+      <label class="field">소속<input name="deptKo" maxlength="100" placeholder="1그룹 치료제 발굴 · 의과대학 분자의학교실"></label>
+      <label class="field">영문 소속<input name="deptEn" maxlength="200" placeholder="Group 1 Drug discovery · Department of Molecular Medicine"></label>
+      <label class="field">연구 분야<input name="researchKo" maxlength="200"></label>
+      <label class="field">영문 연구 분야<input name="researchEn" maxlength="300"></label>
+    </div>
+    <p class="hint">영문 칸을 비우면 영어 화면에도 한국어로 나와요. 이메일은 홈페이지에 공개돼요.</p>
+    <div class="actions">
+      <button class="btn-s danger" type="button" id="deleteMemberBtn">삭제</button>
+      <span class="spacer"></span>
+      <button class="btn-s" value="cancel" formnovalidate>취소</button>
+      <button class="btn-s primary" type="submit" value="save">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 구성원 엑셀에서 붙여 넣기 -->
+<dialog id="memberImportDialog" class="wide">
+  <form method="dialog" id="memberImportForm">
+    <h2>구성원 엑셀에서 붙여 넣기</h2>
+    <p class="hint">엑셀에서 <b>이름 · 영문 이름 · 구분 · 직위 · 소속 · 이메일</b> 순서의 열을 복사해 붙여 넣어요. 구분에는 전임연구원·박사후연구원·연구원·대학원생·행정 중 하나를 써요(비우면 연구원). 이름과 구분이 같은 사람은 빈 칸이 아닌 값만 고쳐요.</p>
+    <textarea name="rows" rows="10" placeholder="홍길동	Gil-Dong Hong	대학원생	박사과정	1그룹 치료제 발굴	hong@knu.ac.kr"></textarea>
+    <p class="hint" id="memberImportPreview">붙여 넣으면 몇 명인지 알려 드려요.</p>
+    <div class="actions">
+      <span class="spacer"></span>
+      <button class="btn-s" value="cancel" formnovalidate>취소</button>
+      <button class="btn-s primary" type="submit" value="save">가져오기</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="js/main.js"></script>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>
