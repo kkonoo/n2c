@@ -146,9 +146,23 @@ dialog .actions { margin-top: 18px; }
 .rep-list-head { justify-content: flex-start; margin: 24px 0 10px; }
 .rep-list-head select { height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 14.5px; font-weight: 600; }
 .admin-tabs button { flex: none; white-space: nowrap; }
+/* 성과 입력: 왼쪽 세로 탭 + 내용 (휴대폰은 위에 가로로 밀어 보는 탭) */
+.report-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
+.report-body .panel-box { margin: 0; }
+.side-tabs { position: sticky; top: 92px; display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 14px; background: var(--seg); }
+.side-tabs button {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 42px; padding: 0 14px;
+  border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; cursor: pointer;
+}
+.side-tabs button:hover { color: var(--text); }
+.side-tabs button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(10, 26, 51, .12); }
+.side-tabs .count { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 20px; text-align: center; }
 @media (max-width: 760px) {
   .table .c-link .actions { flex-wrap: wrap; }
   .table.report-list { display: table; }
+  .report-body { grid-template-columns: 1fr; gap: 16px; }
+  .side-tabs { position: static; flex-direction: row; overflow-x: auto; }
+  .side-tabs button { flex: none; width: auto; height: 38px; }
   .report-list .c-date { display: none; }
   .rep-add { flex-wrap: wrap; }
   .rep-add input[name="name"] { max-width: none; }
