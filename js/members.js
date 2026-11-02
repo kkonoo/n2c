@@ -1,5 +1,6 @@
 // 사업단 소개 → 구성원: 관리자가 넣은 구성원을 보여 줘요.
-// 그룹을 정한 사람은 그룹별로(책임 → 공동 → 참여, 그다음 가나다순) 먼저, 나머지는 구분별로 가나다순으로.
+// 그룹을 정한 사람은 그룹별로 먼저, 나머지는 구분별로. 한 묶음 안에서는 책임 → 공동 → 참여,
+// 그다음 관리자가 정한 순서(작은 숫자 먼저), 그다음 구분(참여교수 → … → 연구원 → 대학원생 → 행정), 그다음 가나다순이에요.
 // 한 사람은 한 번만 나와요. 아무도 없거나 불러오지 못하면 HTML에 있는 안내가 그대로 보여요.
 import { enabled, firestore } from './firebase.js';
 import { bi, esc } from './posts.js';
@@ -26,7 +27,11 @@ export const GROUP_ROLES = {
   co: { ko: '공동', en: 'Co-PI' },
   member: { ko: '참여', en: 'Member' },
 };
-const roleRank = p => Object.keys(GROUP_ROLES).indexOf(p.groupRole) >>> 0;   // 없으면 맨 뒤
+const groupRoleRank = p => Object.keys(GROUP_ROLES).indexOf(p.groupRole) >>> 0;   // 없으면 맨 뒤
+const roleRank = p => Object.keys(ROLES).indexOf(p.role) >>> 0;
+const orderOf = p => (Number.isInteger(p.order) ? p.order : 1000);   // 순서를 비우면 숫자 정한 사람 뒤로
+export const bySection = (a, b) => groupRoleRank(a) - groupRoleRank(b) || orderOf(a) - orderOf(b)
+  || roleRank(a) - roleRank(b) || a.nameKo.localeCompare(b.nameKo, 'ko');
 
 export const sortMembers = list => list.sort((a, b) => a.nameKo.localeCompare(b.nameKo, 'ko'));
 export const photoOk = s => /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(s || '');
@@ -64,8 +69,8 @@ if (enabled && list) {
         ? `<h3 class="block-title">${bi(label.ko, label.en)}</h3><ul class="faculty-grid">${items.map(p => card(p, inGroup)).join('')}</ul>`
         : '');
       list.innerHTML = Object.entries(GROUPS)
-        .map(([g, label]) => section(label, people.filter(p => p.group === g).sort((a, b) => roleRank(a) - roleRank(b)), true))
-        .concat(Object.entries(ROLES).map(([role, label]) => section(label, people.filter(p => !(p.group in GROUPS) && p.role === role), false)))
+        .map(([g, label]) => section(label, people.filter(p => p.group === g).sort(bySection), true))
+        .concat(Object.entries(ROLES).map(([role, label]) => section(label, people.filter(p => !(p.group in GROUPS) && p.role === role).sort(bySection), false)))
         .join('');
       list.hidden = false;
       document.getElementById('memberNote').hidden = true;

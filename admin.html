@@ -180,6 +180,8 @@
         <option value="staff">행정</option>
       </select></label>
       <label class="field">이메일<input name="email" type="email" maxlength="200"></label>
+    </div>
+    <div class="grid-3">
       <label class="field">그룹<select name="group">
         <option value="">없음</option>
         <option value="g1">1그룹 치료제 발굴</option>
@@ -193,14 +195,17 @@
         <option value="co">공동</option>
         <option value="member">참여</option>
       </select></label>
+      <label class="field">순서<input name="order" type="number" min="1" max="999" step="1" placeholder="비우면 자동"></label>
+    </div>
+    <div class="grid-2">
       <label class="field">직위<input name="positionKo" maxlength="50" placeholder="박사과정"></label>
       <label class="field">영문 직위<input name="positionEn" maxlength="100" placeholder="Ph.D. student"></label>
-      <label class="field">소속<input name="deptKo" maxlength="100" placeholder="1그룹 치료제 발굴 · 의과대학 분자의학교실"></label>
-      <label class="field">영문 소속<input name="deptEn" maxlength="200" placeholder="Group 1 Drug discovery · Department of Molecular Medicine"></label>
+      <label class="field">소속<input name="deptKo" maxlength="100" placeholder="의과대학 분자의학교실"></label>
+      <label class="field">영문 소속<input name="deptEn" maxlength="200" placeholder="Department of Molecular Medicine"></label>
       <label class="field">연구 분야<input name="researchKo" maxlength="200"></label>
       <label class="field">영문 연구 분야<input name="researchEn" maxlength="300"></label>
     </div>
-    <p class="hint">그룹을 고르면 홈페이지에서 그 그룹 아래(책임 → 공동 → 참여 순서)에 나오고, 고르지 않으면 구분별 명단에 나와요. 그룹만 고르고 역할을 비우면 ‘참여’로 저장해요. 영문 칸을 비우면 영어 화면에도 한국어로 나와요. 이메일은 홈페이지에 공개돼요.</p>
+    <p class="hint">그룹을 고르면 홈페이지에서 그 그룹 아래에, 고르지 않으면 구분별 명단에 나와요. 같은 묶음 안 순서는 책임 → 공동 → 참여, 그다음 순서 칸의 숫자(작은 숫자 먼저, 비우면 자동), 그다음 구분(참여교수가 연구원보다 먼저), 그다음 가나다순이에요. 그룹만 고르고 역할을 비우면 ‘참여’로 저장해요. 영문 칸을 비우면 영어 화면에도 한국어로 나와요. 이메일은 홈페이지에 공개돼요.</p>
     <div class="actions">
       <button class="btn-s danger" type="button" id="deleteMemberBtn">삭제</button>
       <span class="spacer"></span>

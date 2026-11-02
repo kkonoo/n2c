@@ -88,6 +88,7 @@ export function initMembers({ db, fs, email, toast }) {
     f.role.value = p?.role || 'researcher';
     f.group.value = p?.group in GROUPS ? p.group : '';
     f.groupRole.value = p?.groupRole in GROUP_ROLES ? p.groupRole : '';
+    f.order.value = Number.isInteger(p?.order) ? p.order : '';
     photo = p?.photo || '';
     showPhoto();
     $('#memberDialogTitle').textContent = p ? '구성원 고치기' : '구성원 추가';
@@ -164,6 +165,8 @@ export function initMembers({ db, fs, email, toast }) {
     data.email = data.email.toLowerCase();
     if (!data.group) data.groupRole = '';   // 그룹이 없으면 역할도 없어요
     else if (!data.groupRole) data.groupRole = 'member';
+    const order = Number(f.order.value);
+    if (f.order.value !== '' && Number.isInteger(order) && order >= 1 && order <= 999) data.order = order;   // 비우면 순서 없음
     if (data.email && !isEmail(data.email)) {
       toast('이메일 주소를 확인해 주세요.');
       return;
@@ -204,7 +207,7 @@ export function initMembers({ db, fs, email, toast }) {
   // data/cmri-members.json: 세포·기질연구소 홈페이지의 참여교수·연구초빙교수(사진 포함)와, 그룹을 정해 둔 사업단 연구진 11명.
   // - 구성원이 하나도 없으면 모두 넣어요.
   // - 이미 있으면 지운 분이 다시 들어오지 않게 그룹 연구진만 봐요: 없는 사람은 넣고, 그룹이 비어 있는 사람은 그룹·역할을 채워요
-  //   (연구 분야가 비어 있으면 그것도). 그룹 연구진은 이름으로 찾아요.
+  //   (연구 분야·사진이 비어 있으면 그것도). 그룹 연구진은 이름으로 찾아요.
   $('#memberSeedBtn').addEventListener('click', async () => {
     let rows;
     try {
@@ -221,10 +224,12 @@ export function initMembers({ db, fs, email, toast }) {
       if (r.group) {
         const old = people.find(p => p.nameKo === r.nameKo);
         if (!old) add.push(r);
-        else if (!(old.group in GROUPS)) {
-          const patch = { group: r.group, groupRole: r.groupRole };
+        else {
+          const patch = {};
+          if (!(old.group in GROUPS)) Object.assign(patch, { group: r.group, groupRole: r.groupRole });
           if (!old.researchKo) for (const k of RESEARCH) if (r[k]) patch[k] = r[k];
-          fill.push([old, patch]);
+          if (!old.photo && r.photo) patch.photo = r.photo;
+          if (Object.keys(patch).length) fill.push([old, patch]);
         }
       } else if (first) add.push(r);
     }
@@ -232,7 +237,7 @@ export function initMembers({ db, fs, email, toast }) {
       toast('더 넣을 사람이 없어요. 그룹 연구진도 모두 들어 있어요.');
       return;
     }
-    const todo = [add.length && `${add.length}명 새로 넣기`, fill.length && `${fill.length}명 그룹 채우기`].filter(Boolean).join(', ');
+    const todo = [add.length && `${add.length}명 새로 넣기`, fill.length && `${fill.length}명 빈 칸(그룹·사진 등) 채우기`].filter(Boolean).join(', ');
     const ask = first
       ? `세포·기질연구소 명단과 사업단 연구진 ${add.length}명을 가져올까요?`
       : `${todo}를 할까요?\n(지운 분이 다시 들어오지 않게 나머지 세포·기질연구소 명단은 건너뛰어요.)`;
@@ -249,7 +254,7 @@ export function initMembers({ db, fs, email, toast }) {
         }
         await batch.commit();
       }
-      toast([add.length && `${add.length}명을 넣었어요.`, fill.length && `${fill.length}명의 그룹을 채웠어요.`].filter(Boolean).join(' '));
+      toast([add.length && `${add.length}명을 넣었어요.`, fill.length && `${fill.length}명의 빈 칸을 채웠어요.`].filter(Boolean).join(' '));
       load();
     } catch (err) {
       console.error(err);

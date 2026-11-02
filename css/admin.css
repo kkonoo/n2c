@@ -86,6 +86,7 @@ body.admin { background: var(--surface-2); min-height: 100vh; }
 .check { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; white-space: nowrap; cursor: pointer; }
 .check small { color: var(--muted); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.grid-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 14px; }
 .photo-field { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
 .photo-field .hint { margin-bottom: 0; }
 
@@ -111,7 +112,7 @@ dialog .actions { margin-top: 18px; }
 }
 
 @media (max-width: 760px) {
-  .grid-2, .link-row { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .link-row { grid-template-columns: 1fr; }
   .link-row { padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
   .table { display: block; overflow-x: auto; }
   .table .c-date { width: auto; }
