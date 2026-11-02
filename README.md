@@ -72,6 +72,7 @@ Firestore를 만들기 전에는 메인과 게시판에 ‘글을 불러오지 �
 | `js/live-lists.js` | 공모·신청 → 모집 공고 목록 (분류가 ‘모집’인 공지) |
 | `js/members.js` | 사업단 소개 → 구성원 명단 |
 | `js/partners-map.js` | 사업단 소개 → 참여 기관 지도 (지도와 목록을 함께 강조, 설명 카드) |
+| `js/roadmap.js` | 연구 → 단계별 로드맵 (오늘이 든 단계에 ‘진행 중’, 과제·단계 강조) |
 | `js/apply.js`, `js/apply-types.js` | 신청 화면, 신청 종류·칸 (관리자 화면과 함께 씀) |
 | `js/firebase-config.js` | Firebase 설정값 |
 | `js/firebase.js` | Firebase SDK 불러오기 |

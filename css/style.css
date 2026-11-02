@@ -250,8 +250,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .date-tile small { font-size: 11px; color: var(--muted); }
 .date-tile b { font-size: 22px; font-weight: 800; }
 .date-tile span { font-size: 11.5px; color: var(--muted); }
-.seminar-list .upcoming .date-tile { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.seminar-list .upcoming .date-tile small, .seminar-list .upcoming .date-tile > span { color: var(--on-accent); opacity: .8; }
+.seminar-list .upcoming .date-tile b { color: var(--accent); }   /* 다가오는 세미나는 날짜 숫자만 파랗게 */
 .seminar-list strong { font-weight: 700; }
 .seminar-list p { margin: 1px 0 0; font-size: 14.5px; color: var(--muted); }
 
@@ -359,7 +358,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .about-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; align-items: start; }
 .greeting h2 { margin: 0 0 22px; font-size: clamp(26px, 3vw, 36px); font-weight: 800; line-height: 1.3; letter-spacing: -.025em; }
 .greeting p { margin: 0 0 14px; font-size: 16.5px; color: var(--body); }
-.greeting .sign { margin-top: 24px; font-size: 18px; font-weight: 700; color: var(--text); }
+.greeting .sign-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-top: 24px; }
+.greeting .sign { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); }
+.greeting .sign-row .text-link { margin-top: 0; }
 .sign > span, .sign small { font-size: 14px; font-weight: 500; color: var(--muted); }
 .sign > span { margin-right: 6px; }
 .sign small { margin-left: 6px; }
@@ -600,6 +601,65 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .apply-form .form-msg { margin-top: 12px; }
 .apply-actions .form-msg { margin-top: 0; }
 
+/* ---------- 연구 › 단계별 로드맵 ---------- */
+.rmap { --when-h: 50px; --dot: 40px; }
+.rmap [data-track="drug"] { --t: var(--accent); }
+.rmap [data-track="eng"] { --t: var(--cat-teal); }
+.rmap [data-track="dx"] { --t: var(--cat-purple); }
+.rmap [data-track="hum"] { --t: var(--cat-amber); }
+.rmap-tracks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 36px; font-size: 14px; color: var(--muted); }
+.rmap-tracks > span { margin-right: 4px; font-weight: 600; }
+.rmap-tracks button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--body); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.rmap-tracks button i { width: 9px; height: 9px; border-radius: 50%; background: var(--t); }
+.rmap-tracks button:hover, .rmap-tracks button.on { border-color: var(--t); color: var(--t); }
+.rmap-tracks button[aria-pressed="true"] { background: var(--t); border-color: var(--t); color: var(--on-accent); }
+.rmap-tracks button[aria-pressed="true"] i { background: var(--on-accent); }
+
+.rmap-phases { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
+/* 기간 전체를 띠 하나로: 진한 파랑에서 옅게 */
+.rmap-phases::before {
+  content: ""; position: absolute; left: calc(var(--dot) / 2); right: 0; top: calc(var(--when-h) + var(--dot) / 2 - 3px); height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 22%, var(--surface)));
+}
+.rmap-phase { position: relative; padding-right: 28px; transition: opacity .2s; }
+.rmap-when { display: flex; flex-direction: column; justify-content: flex-end; height: var(--when-h); margin: 0; line-height: 1.2; }
+.rmap-when small { font-size: 13px; font-weight: 700; color: var(--muted); }
+.rmap-when b { font-size: 21px; font-weight: 800; letter-spacing: -.01em; color: var(--text); font-variant-numeric: tabular-nums; }
+.rmap-phase.now .rmap-when small::after { content: "진행 중"; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 11.5px; }
+:root[data-lang="en"] .rmap-phase.now .rmap-when small::after { content: "In progress"; }
+.rmap-dot {
+  position: relative; z-index: 1; display: grid; place-items: center; width: var(--dot); height: var(--dot); margin: 0;
+  border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 15px; font-weight: 800;
+  transition: transform .2s;
+}
+.rmap-phase.now .rmap-dot { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 6px var(--accent-soft); }
+.rmap-phase.hot .rmap-dot { transform: scale(1.12); }
+.rmap-goal { position: relative; margin: 0 0 14px; padding-top: 26px; font-size: 17.5px; line-height: 1.4; letter-spacing: -.015em; }
+.rmap-goal::before { content: ""; position: absolute; left: calc(var(--dot) / 2); top: 4px; width: 1px; height: 16px; background: var(--line); }
+.rmap-items { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.rmap-items li {
+  display: grid; grid-template-columns: 6.2em minmax(0, 1fr); gap: 10px; padding: 8px 10px; border-radius: 10px;
+  border-left: 3px solid transparent; font-size: 14.5px; cursor: default; transition: opacity .15s, background .15s, border-color .15s;
+}
+:root[data-lang="en"] .rmap-items li { grid-template-columns: 7.6em minmax(0, 1fr); }
+.rmap-k { display: inline-flex; align-items: baseline; gap: 7px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.rmap-k::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--t); transform: translateY(-1px); }
+.rmap-v { color: var(--body); }
+.rmap-items li:hover, .rmap-items li.on { border-left-color: var(--t); background: color-mix(in srgb, var(--t) 9%, transparent); }
+.rmap-items li.on .rmap-k { color: var(--t); }
+.rmap-items li.on .rmap-v { color: var(--text); font-weight: 600; }
+.rmap[data-track] .rmap-items li:not(.on) { opacity: .35; }
+.rmap.phase-hot:not([data-track]) .rmap-phase:not(.hot) { opacity: .45; }
+
+/* 논문 이름 링크 (DOI·학술지 페이지) */
+a.paper { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
+a.paper::after { content: " ↗"; font-weight: 400; opacity: .6; }
+a.paper:hover { color: var(--accent); text-decoration-color: currentColor; }
+
 /* ---------- 참여 기관 지도 (사업단 소개) ---------- */
 .pmap { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .pmap-fig { position: sticky; top: 152px; margin: 0; }  /* 목록을 내려도 지도는 그대로 */
@@ -719,6 +779,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
   .roadmap li:last-child { padding-bottom: 0; }
   .roadmap li::before { top: 2px; left: -8px; }
   .roadmap li.now { border-left-color: var(--accent); }
+  .rmap-tracks { margin-bottom: 28px; }
+  .rmap-phases { grid-template-columns: 1fr; gap: 32px; }
+  .rmap-phases::before { left: calc(var(--dot) / 2 - 3px); right: auto; top: calc(var(--dot) / 2); bottom: 0; width: 6px; height: auto; background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 22%, var(--surface))); }
+  .rmap-phase { padding: 0 0 0 calc(var(--dot) + 16px); }
+  .rmap-dot { position: absolute; left: 0; top: 2px; }
+  .rmap-when { height: auto; }
+  .rmap-goal { padding-top: 8px; }
+  .rmap-goal::before { display: none; }
   .pm-items { grid-template-columns: 1fr; }
   .pmap-abroad .dots { columns: 1; }
   .pmap-svg .pin-lab, .pmap-svg .zone-lab { display: none; }
