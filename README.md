@@ -2,8 +2,8 @@
 
 2026 교육부 글로컬랩(거점형) 천연나노융합사업단(N2C, Natural Nano Convergence Center)의 홈페이지예요. GitHub Pages로 열고, 관리자가 공지·세미나·소식과 구성원 명단을 올리고, 공모 프로그램 신청을 로그인 없이 받고, 사업 보고에 쓸 교수님별 성과를 개인 링크로 모아요. 레이아웃과 디자인은 세포·기질연구소 홈페이지([kkonoo/cmri](https://github.com/kkonoo/cmri))와 같아요.
 
-- 홈페이지: https://kkonoo.github.io/nc2/
-- 관리자: https://kkonoo.github.io/nc2/admin.html
+- 홈페이지: https://kkonoo.github.io/n2c/
+- 관리자: https://kkonoo.github.io/n2c/admin.html
 
 ## 하는 일
 
