@@ -1,13 +1,12 @@
-// 사업단 소개 › 참여 기관 지도
+// 사업단 소개 › 참여 기관 지도 (대구, 미국)
 // 지도의 점·권역이나 목록에 마우스를 올리면 서로 강조하고, 지도에서는 설명 카드를 띄워요.
 // 휴대폰에서는 점을 누르면 카드가 열리고, 다른 곳을 누르면 닫혀요.
 
-const root = document.querySelector('.pmap');
-if (root) {
+document.querySelectorAll('.pmap').forEach(root => {
   const svg = root.querySelector('.pmap-svg');
   const canvas = root.querySelector('.pmap-canvas');
-  const card = root.querySelector('#pmapCard');
-  const items = [...root.querySelectorAll('.pmap-list [data-site]')];
+  const card = root.querySelector('.pmap-card');
+  const items = [...root.querySelectorAll('.pm-items [data-site]')];
   const marks = [...svg.querySelectorAll('.pin, .zone')];
   const mapEls = [...svg.querySelectorAll('[data-site]')];
   const sitesOf = el => el.dataset.site.split(' ');
@@ -66,4 +65,4 @@ if (root) {
     li.addEventListener('focus', on);
     li.addEventListener('blur', off);
   });
-}
+});

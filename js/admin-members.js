@@ -207,7 +207,7 @@ export function initMembers({ db, fs, email, toast }) {
   // data/cmri-members.json: 세포·기질연구소 홈페이지의 참여교수·연구초빙교수(사진 포함)와, 그룹을 정해 둔 사업단 연구진 11명.
   // - 구성원이 하나도 없으면 모두 넣어요.
   // - 이미 있으면 지운 분이 다시 들어오지 않게 그룹 연구진만 봐요: 없는 사람은 넣고, 그룹이 비어 있는 사람은 그룹·역할을 채워요
-  //   (연구 분야·사진이 비어 있으면 그것도). 그룹 연구진은 이름으로 찾아요.
+  //   (연구 분야·사진·이메일이 비어 있으면 그것도). 그룹 연구진은 이름으로 찾아요.
   $('#memberSeedBtn').addEventListener('click', async () => {
     let rows;
     try {
@@ -229,6 +229,7 @@ export function initMembers({ db, fs, email, toast }) {
           if (!(old.group in GROUPS)) Object.assign(patch, { group: r.group, groupRole: r.groupRole });
           if (!old.researchKo) for (const k of RESEARCH) if (r[k]) patch[k] = r[k];
           if (!old.photo && r.photo) patch.photo = r.photo;
+          if (!old.email && r.email) patch.email = r.email;
           if (Object.keys(patch).length) fill.push([old, patch]);
         }
       } else if (first) add.push(r);
