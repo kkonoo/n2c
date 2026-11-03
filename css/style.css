@@ -475,6 +475,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
 .sub-head { margin-bottom: 32px; }
 .sub-head h2 { margin: 0; font-size: clamp(24px, 2.8vw, 32px); font-weight: 800; letter-spacing: -.02em; line-height: 1.3; }
 .sub-head p { max-width: 46em; margin: 10px 0 0; color: var(--muted); font-size: 16.5px; }
+.sub-head .apply-contact { margin-top: 6px; font-size: 15px; }
+.apply-contact > span { font-weight: 700; color: var(--text); }
 .block-title { margin: 48px 0 16px; }
 .sub-head + .block-title { margin-top: 0; }
 .prose p { max-width: 46em; margin: 0 0 16px; font-size: 16.5px; line-height: 1.85; color: var(--body); }
