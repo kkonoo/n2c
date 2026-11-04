@@ -12,7 +12,7 @@ const FILE_OK = /\.(pdf|jpe?g|png|hwpx?|docx?|xlsx?|pptx?)$/i;   // storage.rule
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // firestore.rules와 같게
 
 const MSG = {
-  setup: bi('아직 홈페이지 설정 중이에요. 사업단(053-420-4971, n2cglocal@knu.ac.kr)으로 문의해 주세요.', 'The site is still being set up. Please contact the N2C office at +82-53-420-4971 or n2cglocal@knu.ac.kr.'),
+  setup: bi('아직 홈페이지 설정 중이에요. 사업단(053-420-4971, N2Cglocal@knu.ac.kr)으로 문의해 주세요.', 'The site is still being set up. Please contact the N2C office at +82-53-420-4971 or N2Cglocal@knu.ac.kr.'),
   email: bi('이메일 주소를 확인해 주세요. 결과를 이 주소로 알려 드려요.', 'Please check your email address. We’ll let you know the result there.'),
   tooMany: bi('파일은 5개까지 올릴 수 있어요.', 'You can attach up to 5 files.'),
   tooBig: bi('20MB가 넘는 파일이 있어요.', 'One of the files is larger than 20 MB.'),
@@ -20,7 +20,7 @@ const MSG = {
   saving: bi('저장하는 중…', 'Saving…'),
   done: bi('신청했어요. 결과는 적어 주신 이메일이나 연락처로 알려 드려요. 다른 것도 이어서 신청할 수 있어요.',
     'Submitted. We’ll contact you by email or phone with the result. You can submit another one right away.'),
-  submitFailed: bi('제출하지 못했어요. 잠시 후 다시 시도해 주세요. 계속 안 되면 n2cglocal@knu.ac.kr로 알려 주세요.', 'Couldn’t submit. Please try again in a moment, or email n2cglocal@knu.ac.kr if it keeps failing.'),
+  submitFailed: bi('제출하지 못했어요. 잠시 후 다시 시도해 주세요. 계속 안 되면 N2Cglocal@knu.ac.kr로 알려 주세요.', 'Couldn’t submit. Please try again in a moment, or email N2Cglocal@knu.ac.kr if it keeps failing.'),
 };
 
 const gate = $('#applyGate');
