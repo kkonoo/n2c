@@ -251,6 +251,9 @@ export const CATS = [
 
 export const CAT = Object.fromEntries(CATS.map(c => [c.key, c]));
 
+// 호칭: 구성원 명단 직위에 '교수'가 들어 있거나 명단에 없으면 교수님, 아니면(박사·선임연구원 등) 박사님
+export const honorific = position => (position && !position.includes('교수') ? '박사님' : '교수님');
+
 export function isTop10(f) {
   const n = parseFloat(f.jcr);
   return isJournal(f) && Number.isFinite(n) && n <= 10;

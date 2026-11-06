@@ -3,7 +3,7 @@
 // 교수님 자료만 읽고 쓰게 해요. 관리자가 로그인한 채 열면 관리자 권한으로 그 교수님 자료를 고쳐요.
 import { enabled, auth, firestore } from './firebase.js';
 import { esc } from './posts.js';
-import { GROUPS, CATS, CAT, cellHTML, fieldHTML, pretty } from './report-types.js';
+import { GROUPS, CATS, CAT, cellHTML, fieldHTML, pretty, honorific } from './report-types.js';
 
 const $ = s => document.querySelector(s);
 const gate = $('#gate');
@@ -57,16 +57,15 @@ async function start() {
   if (user.isAnonymous) await fs.setDoc(fs.doc(db, 'reportSessions', user.uid), { k: key, at: fs.serverTimestamp() });
 
   const pid = info.prof;
-  const who = `${info.name} ${await honorific(info.name)}`;
+  const who = `${info.name} ${await honorOf(info.name)}`;
   $('#who').textContent = `${who} 성과 입력`;
   document.title = `${who} 성과 입력 | 천연나노융합사업단`;
 
-  // 호칭: 구성원 명단의 직위에 '교수'가 들어 있거나 명단에 없으면 교수님, 아니면(박사·선임연구원 등) 박사님
-  async function honorific(name) {
+  // 호칭은 구성원 명단의 직위로 정해요 (교수님·박사님)
+  async function honorOf(name) {
     try {
       const m = await fs.getDocs(fs.query(fs.collection(db, 'members'), fs.where('nameKo', '==', name)));
-      const pos = m.docs[0]?.data().positionKo || '';
-      return pos && !pos.includes('교수') ? '박사님' : '교수님';
+      return honorific(m.docs[0]?.data().positionKo);
     } catch (err) {
       console.error(err);
       return '교수님';

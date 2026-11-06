@@ -2,7 +2,7 @@
 // 정량성과 양식(엑셀·파워포인트) 받기, 항목별 CSV
 // 실적은 이 탭에서만 모아 봐요. 교수님은 개인 링크(report.html?k=…)로 자기 실적만 넣고 고쳐요.
 import { esc } from './posts.js';
-import { CATS, CAT, cellHTML, pretty, tally, inRange, monthOf } from './report-types.js';
+import { CATS, CAT, cellHTML, pretty, tally, inRange, monthOf, honorific } from './report-types.js';
 import { CENTER, yearOf, yearValues, buildXlsx, buildPptx, save } from './kpi-export.js';
 
 const $ = s => document.querySelector(s);
@@ -11,6 +11,7 @@ const START_YEAR = 2026;   // 사업 시작 (2026.9)
 export function initReports({ db, fs, toast }) {
   let reporters = [];   // { id, name, dept, key }
   let reports = [];     // { id, prof, cat, f, updatedAt }
+  let positions = new Map();   // 구성원 이름 → 직위 (호칭용)
   let loaded = false;
 
   const linkOf = k => new URL(`report.html?k=${k}`, location.href).href;
@@ -21,13 +22,15 @@ export function initReports({ db, fs, toast }) {
   const when = r => r.updatedAt?.toDate?.() || null;
   const ymd = d => d ? `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}` : '';
   const profName = id => reporters.find(p => p.id === id)?.name || '(명단에 없음)';
+  const who = name => `${name} ${honorific(positions.get(name))}`;   // 홍길동 교수님, 강경구 박사님
 
   async function load() {
     $('#repRows').innerHTML = '<tr><td class="msg">불러오는 중…</td></tr>';
     try {
-      const [ps, rs] = await Promise.all([fs.getDocs(fs.collection(db, 'reporters')), fs.getDocs(fs.collection(db, 'reports'))]);
+      const [ps, rs, ms] = await Promise.all(['reporters', 'reports', 'members'].map(n => fs.getDocs(fs.collection(db, n))));
       reporters = ps.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
       reports = rs.docs.map(d => ({ id: d.id, ...d.data() }));
+      positions = new Map(ms.docs.map(d => [d.data().nameKo, d.data().positionKo]));
       loaded = true;
     } catch (err) {
       console.error(err);
@@ -83,7 +86,7 @@ export function initReports({ db, fs, toast }) {
       form.reset();
       renderPeople();
       fillFilters();
-      toast(`${name} 교수님을 넣었어요. 링크 복사를 눌러 보내 주세요.`);
+      toast(`${who(name)}을 넣었어요. 링크 복사를 눌러 보내 주세요.`);
     } catch (err) {
       console.error(err);
       toast('넣지 못했어요. 다시 시도해 주세요.');
@@ -138,11 +141,11 @@ export function initReports({ db, fs, toast }) {
     if (!b) return;
     if (b.dataset.copy) {
       const p = reporters.find(x => x.id === b.dataset.copy);
-      return copy(linkOf(p.key), `${p.name} 교수님 링크를 복사했어요.`);
+      return copy(linkOf(p.key), `${who(p.name)} 링크를 복사했어요.`);
     }
     if (b.dataset.rekey) {
       const p = reporters.find(x => x.id === b.dataset.rekey);
-      if (!confirm(`${p.name} 교수님 링크를 새로 만들까요?\n예전 링크는 바로 막혀요. 넣은 실적은 그대로예요.`)) return;
+      if (!confirm(`${who(p.name)} 링크를 새로 만들까요?\n예전 링크는 바로 막혀요. 넣은 실적은 그대로예요.`)) return;
       const key = newKey();
       const batch = fs.writeBatch(db);
       batch.set(fs.doc(db, 'reportKeys', key), { prof: p.id, name: p.name });
@@ -162,7 +165,7 @@ export function initReports({ db, fs, toast }) {
     if (b.dataset.remove) {
       const p = reporters.find(x => x.id === b.dataset.remove);
       const mine = reports.filter(r => r.prof === p.id);
-      if (!confirm(`${p.name} 교수님을 명단에서 지울까요?\n링크가 막히고, 넣은 실적 ${mine.length}건도 함께 지워져요.`)) return;
+      if (!confirm(`${who(p.name)}을 명단에서 지울까요?\n링크가 막히고, 넣은 실적 ${mine.length}건도 함께 지워져요.`)) return;
       try {
         for (let i = 0; i < mine.length + 2; i += 400) {
           const batch = fs.writeBatch(db);
@@ -204,7 +207,7 @@ export function initReports({ db, fs, toast }) {
     const keep = (sel, v, html) => { sel.innerHTML = html; if ([...sel.options].some(o => o.value === v)) sel.value = v; };
     keep(fromY, fromY.value, `<option value="">처음부터</option>${years}`);
     keep(toY, toY.value, `<option value="">지금까지</option>${years}`);
-    keep(profSel, profSel.value, `<option value="">교수님 전체</option>${reporters.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}`);
+    keep(profSel, profSel.value, `<option value="">연구진 전체</option>${reporters.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}`);
     fromM.disabled = !fromY.value;
     toM.disabled = !toY.value;
   }
@@ -333,7 +336,7 @@ export function initReports({ db, fs, toast }) {
     const list = picked().filter(r => r.cat === c.key)
       .sort((a, b) => profName(a.prof).localeCompare(profName(b.prof), 'ko') || (c.date(a.f || {}) || '').localeCompare(c.date(b.f || {}) || ''));
     const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const head = ['교수님', '소속', ...c.fields.map(fd => fd.l), '마지막 저장'];
+    const head = ['이름', '소속', ...c.fields.map(fd => fd.l), '마지막 저장'];
     const rows = list.map(r => {
       const p = reporters.find(x => x.id === r.prof) || {};
       return [p.name || '', p.dept || '', ...c.fields.map(fd => pretty(r.f?.[fd.k])), ymd(when(r))];
