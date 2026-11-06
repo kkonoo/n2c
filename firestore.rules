@@ -84,7 +84,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['prof', 'cat', 'f', 'createdAt', 'updatedAt'])
         && d.prof is string
         // 항목 (js/report-types.js와 같게)
-        && d.cat in ['paper', 'patent', 'transfer', 'people', 'collab', 'award', 'press']
+        && d.cat in ['paper', 'patent', 'event', 'people', 'edu', 'collab', 'infra', 'company', 'transfer', 'econ', 'jobs', 'award', 'press']
         && d.f is map && d.f.size() <= 30;
     }
 

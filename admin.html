@@ -115,7 +115,7 @@
             <button class="btn-s" type="button" id="repCopyAllBtn">링크 모두 복사</button>
           </div>
         </div>
-        <p class="hint">교수님마다 개인 링크를 보내 드리면 로그인 없이 그 링크로 논문·특허·기술이전·인력양성·공동연구·수상·언론 보도를 넣어요. 교수님은 자기 실적만 보고, 모아 보기는 이 탭에서만 돼요. 링크를 가진 사람은 그 교수님 실적을 고칠 수 있으니, 링크가 새어 나가면 <b>새 링크</b>를 눌러 바꿔 주세요(예전 링크는 바로 막혀요). <b>열기</b>로 들어가면 관리자가 대신 넣거나 고칠 수 있어요. <b>사업단 연구진 불러오기</b>는 구성원 탭에서 그룹을 정한 사람을 넣어요.</p>
+        <p class="hint">교수님마다 개인 링크를 보내 드리면 로그인 없이 그 링크로 정량성과 양식의 항목(논문·특허·인력양성·글로벌 교류·기술이전 등)과 수상·언론 보도를 넣어요. 교수님은 자기 실적만 보고, 모아 보기는 이 탭에서만 돼요. 링크를 가진 사람은 그 교수님 실적을 고칠 수 있으니, 링크가 새어 나가면 <b>새 링크</b>를 눌러 바꿔 주세요(예전 링크는 바로 막혀요). <b>열기</b>로 들어가면 관리자가 대신 넣거나 고칠 수 있어요. <b>사업단 연구진 불러오기</b>는 구성원 탭에서 그룹을 정한 사람을 넣어요.</p>
         <table class="table">
           <thead><tr><th>이름</th><th>넣은 실적</th><th class="c-date">마지막 저장</th><th class="c-link">개인 링크</th><th class="c-del"><span class="sr-only">삭제</span></th></tr></thead>
           <tbody id="repRows"></tbody>
@@ -132,7 +132,8 @@
           <h2>실적 모아 보기</h2>
           <div class="actions">
             <button class="btn-s" type="button" id="repRefreshBtn">새로 고침</button>
-            <button class="btn-s" type="button" id="repCsvBtn">엑셀(CSV)로 받기</button>
+            <button class="btn-s primary" type="button" id="repXlsxBtn">정량성과 양식 엑셀</button>
+            <button class="btn-s primary" type="button" id="repPptxBtn">정량성과 양식 PPT</button>
           </div>
         </div>
         <div class="filters rep-filters">
@@ -143,12 +144,13 @@
           <select id="repToM" aria-label="끝 월"></select>
           <select id="repProf" aria-label="교수님"></select>
         </div>
-        <p class="hint">고른 기간의 합계예요. 기간은 연·월로 골라요(예: 1차년도 2026년 9월 ~ 2027년 2월). 논문은 게재 연월, 특허는 출원·등록일, 기술이전·수상·언론은 날짜, 공동연구는 시작 연월로 보고, 인력양성은 그 기간에 참여한 사람(입학·임용 ~ 졸업·끝)을 세요. 상위 10%는 교수님이 적은 JCR 상위 %가 10 이하인 논문이에요.</p>
+        <p class="hint">글로컬랩 사업단 정량성과 집계 양식의 14개 항목을 고른 기간으로 셌어요. 기간은 연·월로 골라요(예: 1차년도 2026년 9월 ~ 2027년 2월). <b>정량성과 양식</b> 단추는 이 기간을 사업연도(3월 ~ 다음 해 2월)로 나눠 양식의 연도 열(2026년 = 2026.03 ~ 2027.02)에 넣고, 끝 달이 든 해를 기준연도로 해요. 기간에 들지 않는 해는 빈칸(미조사)으로 둬요. 교수님을 고르면 그 교수님 실적만 넣어요.</p>
         <div class="table-wrap"><table class="table rep-summary" id="repSummary"></table></div>
-        <p class="hint" id="repPeople"></p>
         <div class="toolbar rep-list-head">
           <select id="repCat" aria-label="항목"></select>
           <span class="hint" id="repItemCount"></span>
+          <span class="spacer"></span>
+          <button class="btn-s" type="button" id="repCsvBtn">이 항목 CSV로 받기</button>
         </div>
         <table class="table">
           <thead><tr><th class="c-cat">교수님</th><th>내용</th><th class="c-date">마지막 저장</th></tr></thead>

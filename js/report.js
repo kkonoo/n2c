@@ -3,7 +3,7 @@
 // 교수님 자료만 읽고 쓰게 해요. 관리자가 로그인한 채 열면 관리자 권한으로 그 교수님 자료를 고쳐요.
 import { enabled, auth, firestore } from './firebase.js';
 import { esc } from './posts.js';
-import { CATS, CAT, cellHTML, fieldHTML, pretty } from './report-types.js';
+import { GROUPS, CATS, CAT, cellHTML, fieldHTML, pretty } from './report-types.js';
 
 const $ = s => document.querySelector(s);
 const gate = $('#gate');
@@ -70,10 +70,12 @@ async function start() {
   const sortKey = r => CAT[r.cat].date(r.f || {}) || '';
 
   function render() {
-    $('#catTabs').innerHTML = CATS.map(c => {
+    // 왼쪽 탭은 정량성과 양식의 구분(연구성과·인재양성·…)으로 묶어요
+    const tab = c => {
       const n = items.filter(r => r.cat === c.key).length;
       return `<button type="button" data-cat="${c.key}"${c.key === cat ? ' class="on"' : ''}>${esc(c.name)}${n ? ` <span class="count">${n}</span>` : ''}</button>`;
-    }).join('');
+    };
+    $('#catTabs').innerHTML = GROUPS.map(g => `<span class="side-group">${esc(g)}</span>${CATS.filter(c => c.group === g).map(tab).join('')}`).join('');
     const c = CAT[cat];
     $('#catRule').innerHTML = c.rule;
     $('#addBtn').textContent = `${c.name} 추가`;

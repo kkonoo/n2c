@@ -1,7 +1,9 @@
-// 관리자: 성과 입력 — 교수님 명단과 개인 링크, 실적 모아 보기(연·월 기간), 기간 합계, CSV
+// 관리자: 성과 입력 — 교수님 명단과 개인 링크, 실적 모아 보기(연·월 기간), 정량성과 14개 항목 합계,
+// 정량성과 양식(엑셀·파워포인트) 받기, 항목별 CSV
 // 실적은 이 탭에서만 모아 봐요. 교수님은 개인 링크(report.html?k=…)로 자기 실적만 넣고 고쳐요.
 import { esc } from './posts.js';
-import { CATS, CAT, cellHTML, pretty, isTop10 } from './report-types.js';
+import { CATS, CAT, cellHTML, pretty, tally, inRange, monthOf } from './report-types.js';
+import { CENTER, yearOf, yearValues, buildXlsx, buildPptx, save } from './kpi-export.js';
 
 const $ = s => document.querySelector(s);
 const START_YEAR = 2026;   // 사업 시작 (2026.9)
@@ -207,54 +209,36 @@ export function initReports({ db, fs, toast }) {
     toM.disabled = !toY.value;
   }
 
-  // 실적의 연·월 (YYYY-MM). 논문은 게재 연월, 특허·기술이전·수상·언론은 날짜, 공동연구는 시작 연월
-  const monthOf = r => String(CAT[r.cat]?.date(r.f || {}) || '').slice(0, 7);
   const range = () => ({ from: fromY.value ? `${fromY.value}-${fromM.value}` : '', to: toY.value ? `${toY.value}-${toM.value}` : '' });
   const label = ({ from, to }) => `${from ? pretty(from) : '처음'} ~ ${to ? pretty(to) : '지금'}`;
 
-  // 인력양성은 그 기간에 참여한 사람 (입학·임용 ~ 졸업·끝이 기간과 겹치면)
-  function inRange(r, { from, to }) {
-    if (r.cat === 'people') {
-      const admit = (r.f?.admit || '').slice(0, 7), grad = (r.f?.grad || '').slice(0, 7);
-      return (!to || !admit || admit <= to) && (!from || !grad || grad >= from);
-    }
-    const m = monthOf(r);
-    return (!from || (m && m >= from)) && (!to || (m && m <= to));
-  }
-
-  // 기간·교수님으로 거른 실적 (항목은 따로)
+  // 교수님으로 거른 실적 (기간은 따로)
+  const mineOrAll = () => reports.filter(r => !profSel.value || r.prof === profSel.value);
+  // 기간·교수님으로 거른 실적 (인력양성은 참여 기간이 겹치면 들어가요)
   function picked() {
-    const rg = range(), prof = profSel.value;
-    return reports.filter(r => (!prof || r.prof === prof) && inRange(r, rg));
+    const rg = range();
+    return mineOrAll().filter(r => inRange(r, rg.from, rg.to));
   }
 
-  function renderSummary(list) {
+  // 정량성과 양식의 14개 항목 (구분마다 묶어요)
+  function renderSummary() {
     const rg = range();
-    const cols = [
-      ['논문', r => r.cat === 'paper'],
-      ['상위 10%', r => r.cat === 'paper' && isTop10(r.f || {})],
-      ['특허 출원', r => r.cat === 'patent' && r.f?.kind === '출원'],
-      ['특허 등록', r => r.cat === 'patent' && r.f?.kind === '등록'],
-      ['기술이전', r => r.cat === 'transfer'],
-      ['공동연구', r => r.cat === 'collab'],
-      ['수상', r => r.cat === 'award'],
-      ['언론 보도', r => r.cat === 'press'],
-    ];
+    const rows = tally(mineOrAll(), rg.from, rg.to);
     $('#repSummary').innerHTML = `
-      <thead><tr><th>기간</th>${cols.map(([n]) => `<th class="c-num">${n}</th>`).join('')}</tr></thead>
-      <tbody><tr><td>${esc(label(rg))}</td>${cols.map(([, fn]) => `<td class="c-num">${list.filter(fn).length || '–'}</td>`).join('')}</tr></tbody>`;
-    const people = list.filter(r => r.cat === 'people').map(r => r.f || {});
-    const deg = d => people.filter(f => f.degree === d).length;
-    const grad = people.filter(f => f.status === '졸업' && f.grad && (!rg.from || f.grad >= rg.from) && (!rg.to || f.grad <= rg.to)).length;
-    $('#repPeople').textContent = people.length
-      ? `인력양성: 이 기간에 참여한 ${people.length}명 — 석사 ${deg('석사')} · 박사 ${deg('박사') + deg('석박통합')} · 박사후연구원 ${deg('박사후연구원')} · 학부연구생 ${deg('학부연구생')} · 연구원 ${deg('연구원')}, 이 기간 졸업 ${grad}명`
-      : '인력양성: 이 기간에 참여한 사람이 없어요.';
+      <thead><tr><th>구분</th><th>성과 항목</th><th class="c-num">${esc(label(rg))}</th><th>단위</th><th class="rep-rule">산정 기준</th></tr></thead>
+      <tbody>${rows.map((k, i) => {
+        const first = i === 0 || rows[i - 1].group !== k.group;
+        const span = rows.filter(x => x.group === k.group).length;
+        const v = k.unit === '억원' ? k.value.toFixed(1) : k.value;
+        return `<tr>${first ? `<th class="rep-group" rowspan="${span}">${esc(k.group)}</th>` : ''}
+          <td>${esc(k.name)}</td><td class="c-num"><b>${v}</b></td><td>${k.unit}</td><td class="rep-rule">${esc(k.rule)}</td></tr>`;
+      }).join('')}</tbody>`;
   }
 
   function renderItems() {
     if (!loaded) return;
     const base = picked();
-    renderSummary(base);
+    renderSummary();
     const c = CAT[catSel.value];
     const list = base.filter(r => r.cat === c.key)
       .sort((a, b) => (c.date(b.f || {}) || '').localeCompare(c.date(a.f || {}) || '') || profName(a.prof).localeCompare(profName(b.prof), 'ko'));
@@ -314,6 +298,33 @@ export function initReports({ db, fs, toast }) {
       toast('지우지 못했어요.');
     }
   });
+
+  // 정량성과 양식으로 받기: 고른 기간을 사업연도(3월 ~ 다음 해 2월)로 나눠 연도 열에 넣어요.
+  // 끝을 비우면 이번 달까지예요. 교수님을 고르면 그 교수님 실적만 넣어요
+  async function exportForm(kind, btn) {
+    if (!loaded) return;
+    const rg = range();
+    const d = new Date();
+    const to = rg.to || `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const list = mineOrAll();
+    const years = yearValues((a, b) => tally(list, a, b).map(k => k.value), rg.from, to);
+    const base = yearOf(to);
+    const who = profSel.value ? `_${profName(profSel.value)}` : '';
+    const name = `정량성과_${CENTER}${who}_${rg.from ? pretty(rg.from) : '처음'}-${pretty(to)}`;
+    btn.disabled = true;
+    try {
+      const blob = await (kind === 'xlsx' ? buildXlsx : buildPptx)({ years, base });
+      save(blob, `${name}.${kind}`);
+      toast(`${base}년을 기준연도로 ${kind === 'xlsx' ? '엑셀' : '파워포인트'} 양식을 만들었어요.`);
+    } catch (err) {
+      console.error(err);
+      toast('양식 파일을 만들지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  $('#repXlsxBtn').addEventListener('click', e => exportForm('xlsx', e.currentTarget));
+  $('#repPptxBtn').addEventListener('click', e => exportForm('pptx', e.currentTarget));
 
   // 지금 고른 항목·기간·교수님을 CSV로 (엑셀에서 바로 열려요)
   $('#repCsvBtn').addEventListener('click', () => {

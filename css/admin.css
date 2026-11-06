@@ -143,7 +143,10 @@ dialog .actions { margin-top: 18px; }
 .table-wrap { overflow-x: auto; margin-bottom: 8px; }
 .rep-summary { font-variant-numeric: tabular-nums; }
 .rep-summary .c-num { width: auto; text-align: right; }
+.rep-summary .rep-group { width: 1%; white-space: nowrap; vertical-align: middle; background: var(--surface-2); font-size: 13.5px; }
+.rep-summary .rep-rule { color: var(--muted); font-size: 13px; }
 .rep-list-head { justify-content: flex-start; margin: 24px 0 10px; }
+.rep-list-head .spacer { flex: 1; }
 .rep-list-head select { height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 14.5px; font-weight: 600; }
 .admin-tabs button { flex: none; white-space: nowrap; }
 /* 성과 입력: 왼쪽 세로 탭 + 내용 (휴대폰은 위에 가로로 밀어 보는 탭) */
@@ -156,6 +159,8 @@ dialog .actions { margin-top: 18px; }
 }
 .side-tabs button:hover { color: var(--text); }
 .side-tabs button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(10, 26, 51, .12); }
+.side-tabs .side-group { padding: 12px 12px 4px; font-size: 12.5px; font-weight: 800; color: var(--faint); letter-spacing: .02em; }
+.side-tabs .side-group:first-child { padding-top: 6px; }
 .side-tabs .count { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 20px; text-align: center; }
 @media (max-width: 760px) {
   .table .c-link .actions { flex-wrap: wrap; }
@@ -163,6 +168,8 @@ dialog .actions { margin-top: 18px; }
   .report-body { grid-template-columns: 1fr; gap: 16px; }
   .side-tabs { position: static; flex-direction: row; overflow-x: auto; }
   .side-tabs button { flex: none; width: auto; height: 38px; }
+  .side-tabs .side-group { display: none; }
+  .rep-summary .rep-rule { display: none; }
   .report-list .c-date { display: none; }
   .rep-add { flex-wrap: wrap; }
   .rep-add input[name="name"] { max-width: none; }
