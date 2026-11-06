@@ -27,7 +27,7 @@ function showGate(title, text) {
 if (!enabled) {
   showGate('준비 중이에요', '사업단 홈페이지 설정이 끝나면 열려요.');
 } else if (!/^[A-Za-z0-9_-]{20,64}$/.test(key)) {
-  showGate('개인 링크로 들어와 주세요', '사업단에서 받은 교수님별 링크를 그대로 열어 주세요.');
+  showGate('개인 링크로 들어와 주세요', '사업단에서 받은 개인 링크를 그대로 열어 주세요.');
 } else {
   start().catch(err => {
     console.error(err);
@@ -57,8 +57,21 @@ async function start() {
   if (user.isAnonymous) await fs.setDoc(fs.doc(db, 'reportSessions', user.uid), { k: key, at: fs.serverTimestamp() });
 
   const pid = info.prof;
-  $('#who').textContent = `${info.name} 교수님 성과 입력`;
-  document.title = `${info.name} 교수님 성과 입력 | 천연나노융합사업단`;
+  const who = `${info.name} ${await honorific(info.name)}`;
+  $('#who').textContent = `${who} 성과 입력`;
+  document.title = `${who} 성과 입력 | 천연나노융합사업단`;
+
+  // 호칭: 구성원 명단의 직위에 '교수'가 들어 있거나 명단에 없으면 교수님, 아니면(박사·선임연구원 등) 박사님
+  async function honorific(name) {
+    try {
+      const m = await fs.getDocs(fs.query(fs.collection(db, 'members'), fs.where('nameKo', '==', name)));
+      const pos = m.docs[0]?.data().positionKo || '';
+      return pos && !pos.includes('교수') ? '박사님' : '교수님';
+    } catch (err) {
+      console.error(err);
+      return '교수님';
+    }
+  }
 
   const snap = await fs.getDocs(fs.query(fs.collection(db, 'reports'), fs.where('prof', '==', pid)));
   let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -119,7 +132,7 @@ async function start() {
   function fail(err) {
     console.error(err);
     toast(err?.code === 'permission-denied'
-      ? '저장하지 못했어요. 다른 교수님 링크를 열었다면 이 페이지를 새로 고침해 주세요.'
+      ? '저장하지 못했어요. 다른 분의 링크를 열었다면 이 페이지를 새로 고침해 주세요.'
       : '저장하지 못했어요. 인터넷 연결을 확인해 주세요.');
   }
 
